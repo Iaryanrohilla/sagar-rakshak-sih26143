@@ -12,7 +12,7 @@ export const SatellitePanel: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Satellite size={18} style={{ color: 'var(--accent-cyan)' }} />
           <h3 style={{ fontSize: '0.9rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>
-            SATELLITE DATA INGESTION (ST1)
+            SATELLITE DATA INGESTION
           </h3>
         </div>
         <span className="badge badge-cyan">{scene.sensorType} INGEST</span>

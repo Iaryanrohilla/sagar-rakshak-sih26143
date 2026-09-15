@@ -12,7 +12,7 @@ export const AgencyRolePanel: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Shield size={18} style={{ color: 'var(--accent-cyan)' }} />
           <h3 style={{ fontSize: '0.9rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>
-            AGENCY OPERATIONAL VIEW (ST6)
+            AGENCY OPERATIONAL VIEW
           </h3>
         </div>
         <span className="badge badge-cyan">{activeRole.replace(/_/g, ' ')}</span>

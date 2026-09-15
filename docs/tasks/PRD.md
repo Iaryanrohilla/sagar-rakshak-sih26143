@@ -21,16 +21,16 @@
 3. **Chennai / Ennore Coast:** Kamarajar port approaches, Coromandel seaboard, historical spill sensitivity zone.
 
 ## 4. End-to-End Pipeline
-1. **Detect (ST1 & ST2):** Ingest Sentinel-1 C-band SAR + Sentinel-2 optical imagery. Neural network dark-spot segmentation + look-alike rejection (algae bloom, biogenic film, wind shadow).
-2. **Characterise (ST3):** Compute slick geometry (area $km^2$, perimeter $km$, elongation ratio, major/minor spread axes).
-3. **Age (ST3):** Mackay weathering physics & Fay spreading model to compute evaporation %, emulsification mousse, and estimated release age ($T_0 \pm \Delta t$).
-4. **Backward Hindcast (ST4):** Lagrangian reverse particle tracking against HYCOM currents and ECMWF winds (3% windage factor) to compute the Probable Spill Origin Zone.
-5. **Forward Forecast (ST4):** Forward Lagrangian simulation projecting 24h/48h trajectory, uncertainty spread cone, and sensitive coastal landfall warnings.
-6. **AIS Correlate (ST5):** Spatio-temporal trajectory correlation of maritime traffic within the release window; transponder blackout / dark ship anomaly scoring.
-7. **Rank Vessel Suspects (ST5):** Transparent multi-factor scoring (Proximity, Trajectory alignment, Speed, Timing, Drift overlap, AIS blackout) outputting ranked suspect vessels with attribution confidence.
-8. **Visualise (ST6):** Real-time C4I maritime control room dashboard with dark tactical tiles, radar sweeps, SVG vector overlays, and timeline scrubber.
-9. **Alert Authority (ST6):** Multi-agency alert dispatch lifecycle: `NEW` -> `ACKNOWLEDGED` -> `INVESTIGATING` -> `ESCALATED` -> `RESOLVED`.
-10. **Generate Evidence Report (ST6):** Court-admissible MARPOL Annex I forensic dossier with printable formatting and JSON export.
+1. **Detect (Dual-Sensor Ingestion & Segmentation):** Ingest Sentinel-1 C-band SAR + Sentinel-2 optical imagery. Neural network dark-spot segmentation + look-alike rejection (algae bloom, biogenic film, wind shadow).
+2. **Characterise (Slick Morphology):** Compute slick geometry (area $km^2$, perimeter $km$, elongation ratio, major/minor spread axes).
+3. **Age (Physical Weathering Kinetics):** Mackay weathering physics & Fay spreading model to compute evaporation %, emulsification mousse, and estimated release age ($T_0 \pm \Delta t$).
+4. **Backward Hindcast (Origin Localisation):** Lagrangian reverse particle tracking against HYCOM currents and ECMWF winds (3% windage factor) to compute the Probable Spill Origin Zone.
+5. **Forward Forecast (Landfall Risk):** Forward Lagrangian simulation projecting 24h/48h trajectory, uncertainty spread cone, and sensitive coastal landfall warnings.
+6. **AIS Correlate (Maritime Traffic & Blackout Analysis):** Spatio-temporal trajectory correlation of maritime traffic within the release window; transponder blackout / dark ship anomaly scoring.
+7. **Rank Vessel Suspects (Explainable Attribution):** Transparent multi-factor scoring (Proximity, Trajectory alignment, Speed, Timing, Drift overlap, AIS blackout) outputting ranked suspect vessels with attribution confidence.
+8. **Visualise (C4I Control Room):** Real-time C4I maritime control room dashboard with dark tactical tiles, radar sweeps, SVG vector overlays, and timeline scrubber.
+9. **Alert Authority (Multi-Agency Workflow):** Multi-agency alert dispatch lifecycle: `NEW` -> `ACKNOWLEDGED` -> `INVESTIGATING` -> `ESCALATED` -> `RESOLVED`.
+10. **Generate Evidence Report (MARPOL Forensic Dossier):** Court-admissible MARPOL Annex I forensic dossier with printable formatting and JSON export.
 
 ## 5. Non-Negotiable Engineering Principles
 - 100% functional, state-driven prototype (no static UI mockups or dead buttons).

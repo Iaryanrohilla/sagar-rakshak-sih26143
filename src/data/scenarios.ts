@@ -407,7 +407,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
           assignedAgency: 'COAST_GUARD',
           description: 'Sentinel-1 C-SAR pass confirmed 38.4 km² crude slick with 10.4 dB damping. U-Net confidence 94.6%.',
           history: [
-            { status: 'NEW', timestamp: '2026-09-15T03:50:00Z', updatedBy: 'Automated Pipeline (ST2)', note: 'Incident created from SAR detection' },
+            { status: 'NEW', timestamp: '2026-09-15T03:50:00Z', updatedBy: 'Automated Detection Pipeline', note: 'Incident created from SAR detection' },
             { status: 'ACKNOWLEDGED', timestamp: '2026-09-15T04:02:00Z', updatedBy: 'Duty Officer (ICG RHQ-West)', note: 'SAR telemetry verified against Sentinel-2 EO reflectance.' },
             { status: 'INVESTIGATING', timestamp: '2026-09-15T04:35:00Z', updatedBy: 'Pollution Response Commander', note: 'Lagrangian hindcast completed; top suspect identified.' }
           ]
@@ -423,7 +423,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
           assignedAgency: 'DG_SHIPPING',
           description: 'Explainable attribution score 92.4%. Tanker disabled transponder for 2.5 hours while crossing spill origin.',
           history: [
-            { status: 'NEW', timestamp: '2026-09-15T04:40:00Z', updatedBy: 'Attribution Engine (ST5)', note: 'Candidate ranked #1 across 14 vessels' },
+            { status: 'NEW', timestamp: '2026-09-15T04:40:00Z', updatedBy: 'Forensic Attribution Engine', note: 'Candidate ranked #1 across 14 vessels' },
             { status: 'ACKNOWLEDGED', timestamp: '2026-09-15T05:00:00Z', updatedBy: 'DG Shipping PSC Officer', note: 'Notice drafted for Sikka/Vadinar Port State Control inspection team.' }
           ]
         }
@@ -437,7 +437,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
         { id: 'TL-6', timestamp: '2026-09-15T04:15:00Z', stage: 'HINDCAST_SIMULATION', title: 'OpenDrift Backward Hindcast Completed', source: 'OpenDrift Lagrangian Particle Engine', confidence: 91.5, description: 'Probable origin localized at 19.284°N, 71.215°E (search radius 3.2 km).' },
         { id: 'TL-7', timestamp: '2026-09-15T04:28:00Z', stage: 'AIS_CORRELATION', title: 'AIS Traffic Correlated & Blackout Detected', source: 'AIS Stream Processor (PostGIS)', confidence: 96.0, description: 'Correlated 14 vessels in release window. Identified 2.5h AIS gap on MT Oceanus Pride.' },
         { id: 'TL-8', timestamp: '2026-09-15T04:38:00Z', stage: 'VESSEL_ATTRIBUTION', title: 'MT Oceanus Pride Ranked Suspect #1', source: 'Explainable Attribution Engine', confidence: 92.4, description: 'Attribution score 92.4/100 across 5 forensic categories. Evidence dossier compiled.' },
-        { id: 'TL-9', timestamp: '2026-09-15T04:45:00Z', stage: 'AUTHORITY_ALERT', title: 'Coast Guard & DG Shipping Alerts Dispatched', source: 'Agency Alert Engine (ST6)', confidence: 100, description: 'Priority flash alerts dispatched to ICG RHQ-West and DG Shipping Mumbai.' }
+        { id: 'TL-9', timestamp: '2026-09-15T04:45:00Z', stage: 'AUTHORITY_ALERT', title: 'Coast Guard & DG Shipping Alerts Dispatched', source: 'Agency Alert Engine', confidence: 100, description: 'Priority flash alerts dispatched to ICG RHQ-West and DG Shipping Mumbai.' }
       ]
     }
   },
@@ -1424,7 +1424,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
           description: 'Dual-sensor optical validation successfully prevented false alarm. No patrol sortie required.',
           history: [
             { status: 'NEW', timestamp: '2026-09-15T07:10:00Z', updatedBy: 'SAR Ingestion', note: 'Dark spot flagged' },
-            { status: 'RESOLVED', timestamp: '2026-09-15T07:12:00Z', updatedBy: 'Dual-Sensor Discriminator (ST2)', note: 'Classified as ALGAL_BLOOM (optical index -0.45). False positive dismissed.' }
+            { status: 'RESOLVED', timestamp: '2026-09-15T07:12:00Z', updatedBy: 'Dual-Sensor Discriminator', note: 'Classified as ALGAL_BLOOM (optical index -0.45). False positive dismissed.' }
           ]
         }
       ],

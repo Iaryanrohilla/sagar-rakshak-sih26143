@@ -9,44 +9,44 @@
                                                 ▼
                                     ┌───────────────────────┐
                                     │ satelliteService      │
-                                    │ (ST1: Ingestion & Cal)│
+                                    │ (Ingestion & Preproc) │
                                     └───────────┬───────────┘
                                                 │
                                                 ▼
                                     ┌───────────────────────┐
                                     │ slickDetectionService │
-                                    │ (ST2: U-Net / Lookalike)│
+                                    │ (U-Net / Look-alike)  │
                                     └───────────┬───────────┘
                                                 │
                                                 ▼
                                     ┌───────────────────────┐
                                     │characterisationService│
-                                    │ (ST3: Geometry & Age) │
+                                    │ (Geometry & Ageing)   │
                                     └───────────┬───────────┘
                                                 │
                                                 ▼
                                     ┌───────────────────────┐
                                     │     driftService      │
-                                    │ (ST4: Hindcast/Cast)  │
+                                    │ (Hindcast & Forecast) │
                                     └───────────┬───────────┘
                                                 │
                          ┌──────────────────────┴──────────────────────┐
                          ▼                                             ▼
              ┌───────────────────────┐                     ┌───────────────────────┐
              │      aisService       │                     │      alertService     │
-             │ (ST5: Stream & Gaps)  │                     │ (ST6: Lifecycle State)│
+             │ (Traffic Stream & Gap)│                     │   (Lifecycle State)   │
              └───────────┬───────────┘                     └───────────┬───────────┘
                          │                                             │
                          ▼                                             │
              ┌───────────────────────┐                                 │
              │  attributionService   │                                 │
-             │ (ST5: Ranking Engine) │                                 │
+             │ (Explainable Ranking) │                                 │
              └───────────┬───────────┘                                 │
                          │                                             │
                          ▼                                             ▼
                  ┌─────────────────────────────────────────────────────────────┐
                  │                       reportService                         │
-                 │                 (ST6: Evidence Dossier)                     │
+                 │                     (Evidence Dossier)                      │
                  └──────────────────────────────┬──────────────────────────────┘
                                                 │
                                                 ▼

@@ -13,7 +13,7 @@ export const CharacterisationPanel: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Sparkles size={18} style={{ color: 'var(--accent-purple)' }} />
           <h3 style={{ fontSize: '0.9rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--accent-purple)' }}>
-            CHARACTERISATION &amp; AGEING (ST3)
+            SPILL CHARACTERISATION &amp; AGEING
           </h3>
         </div>
         <span className="badge badge-purple">{char.spillAgeHours}H ESTIMATED AGE</span>

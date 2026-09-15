@@ -13,7 +13,7 @@ export const AttributionPanel: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <UserCheck size={18} style={{ color: 'var(--accent-crimson)' }} />
           <h3 style={{ fontSize: '0.9rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--accent-crimson)' }}>
-            VESSEL ATTRIBUTION ENGINE (ST5)
+            VESSEL ATTRIBUTION ENGINE
           </h3>
         </div>
         <span className="badge badge-crimson">EXPLAINABLE RANKING</span>

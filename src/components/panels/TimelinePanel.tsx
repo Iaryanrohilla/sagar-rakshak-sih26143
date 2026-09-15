@@ -12,7 +12,7 @@ export const TimelinePanel: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Clock size={18} style={{ color: 'var(--accent-cyan)' }} />
           <h3 style={{ fontSize: '0.9rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>
-            EVIDENCE AUDIT TIMELINE (ST6)
+            EVIDENCE AUDIT TIMELINE
           </h3>
         </div>
         <span className="badge badge-cyan">{events.length} EVENTS</span>

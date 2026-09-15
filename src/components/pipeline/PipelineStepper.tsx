@@ -22,14 +22,14 @@ export const PipelineStepper: React.FC = () => {
   } = useIncident()
 
   const stages: { id: PipelineStage; label: string; number: string; icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }> }[] = [
-    { id: 'INGESTION', label: '1. SATELLITE INGEST', number: 'ST1', icon: Satellite },
-    { id: 'DETECTION', label: '2. SLICK DETECT', number: 'ST2', icon: Target },
-    { id: 'CHARACTERISATION', label: '3. CHARACTERISE & AGE', number: 'ST3', icon: Sparkles },
-    { id: 'HINDCAST', label: '4. DRIFT HINDCAST', number: 'ST4', icon: History },
-    { id: 'FORECAST', label: '5. DRIFT FORECAST', number: 'ST4', icon: TrendingUp },
-    { id: 'CORRELATION', label: '6. AIS CORRELATE', number: 'ST5', icon: Radio },
-    { id: 'ATTRIBUTION', label: '7. VESSEL ATTRIBUTION', number: 'ST5', icon: UserCheck },
-    { id: 'ALERTS', label: '8. AGENCY ALERTS', number: 'ST6', icon: Bell }
+    { id: 'INGESTION', label: '1. SATELLITE INGEST', number: '1', icon: Satellite },
+    { id: 'DETECTION', label: '2. SLICK DETECT', number: '2', icon: Target },
+    { id: 'CHARACTERISATION', label: '3. CHARACTERISE & AGE', number: '3', icon: Sparkles },
+    { id: 'HINDCAST', label: '4. DRIFT HINDCAST', number: '4', icon: History },
+    { id: 'FORECAST', label: '5. DRIFT FORECAST', number: '5', icon: TrendingUp },
+    { id: 'CORRELATION', label: '6. AIS CORRELATE', number: '6', icon: Radio },
+    { id: 'ATTRIBUTION', label: '7. VESSEL ATTRIBUTION', number: '7', icon: UserCheck },
+    { id: 'ALERTS', label: '8. AGENCY ALERTS', number: '8', icon: Bell }
   ]
 
   return (

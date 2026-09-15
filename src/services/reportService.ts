@@ -86,22 +86,22 @@ export class ReportService {
         {
           timestamp: incident.scene.acquisitionTime,
           action: 'Copernicus Sentinel Hub Raw Scene Ingestion & Cryptographic Checksum Verified',
-          officer: 'System Daemon (ST1)'
+          officer: 'Satellite Ingestion Daemon'
         },
         {
           timestamp: incident.detection.timestamp,
           action: 'U-Net Deep Learning Dark-Spot Segmentation & Optical Validation Completed',
-          officer: 'AI Inference Engine (ST2)'
+          officer: 'AI Inference Engine'
         },
         {
           timestamp: incident.hindcast.runTimestamp,
           action: 'OpenDrift Lagrangian Particle Backward Hindcast Localized Origin Centroid',
-          officer: 'Hydrodynamic Drift Simulator (ST4)'
+          officer: 'Hydrodynamic Drift Simulator'
         },
         {
           timestamp: incident.createdAt,
           action: 'AIS Stream Cross-Correlated; Multi-Factor Forensic Attribution Matrix Calculated',
-          officer: 'Attribution Engine (ST5)'
+          officer: 'Forensic Attribution Engine'
         }
       ]
     }

@@ -12,7 +12,7 @@ export const AlertsPanel: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Bell size={18} style={{ color: 'var(--accent-amber)' }} />
           <h3 style={{ fontSize: '0.9rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--accent-amber)' }}>
-            MULTI-AGENCY ALERT ENGINE (ST6)
+            MULTI-AGENCY ALERT ENGINE
           </h3>
         </div>
         <span className="badge badge-amber">{alerts.length} ALERTS LOGGED</span>

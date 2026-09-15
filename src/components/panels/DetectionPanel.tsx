@@ -13,7 +13,7 @@ export const DetectionPanel: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Target size={18} style={{ color: 'var(--accent-cyan)' }} />
           <h3 style={{ fontSize: '0.9rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>
-            OIL-SPILL DETECTION (ST2)
+            OIL-SPILL DETECTION
           </h3>
         </div>
         <span className={`badge ${isConfirmed ? 'badge-emerald' : 'badge-amber'}`}>

@@ -13,7 +13,7 @@ export const AISPanel: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Radio size={18} style={{ color: 'var(--accent-blue)' }} />
           <h3 style={{ fontSize: '0.9rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--accent-blue)' }}>
-            AIS TRAFFIC CORRELATION (ST5)
+            AIS TRAFFIC CORRELATION
           </h3>
         </div>
         <span className="badge badge-cyan">{vessels.length} VESSELS CORRELATED</span>
