@@ -5,7 +5,7 @@ import { AISService } from '../services/aisService'
 import { AttributionService } from '../services/attributionService'
 import { AlertService } from '../services/alertService'
 import { DEMO_SCENARIOS } from '../data/scenarios'
-import { SlickDetection, MetoceanConditions, AISVessel, Incident } from '../types'
+
 
 describe('SAGAR RAKSHAK Core Domain Engine Tests', () => {
   const defaultScenario = DEMO_SCENARIOS[0]
