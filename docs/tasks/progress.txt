@@ -1,7 +1,8 @@
 # SAGAR RAKSHAK Implementation Progress
 
-[ ] PHASE 01: Project foundation and architecture
-[ ] PHASE 02: Core domain models and deterministic demo data
+[X] PHASE 01: Project foundation and architecture (COMPLETED)
+[X] PHASE 02: Core domain models and deterministic demo data (COMPLETED)
+[>] PHASE 03: Control Room dashboard (IN PROGRESS)
 [ ] PHASE 03: Control Room dashboard
 [ ] PHASE 04: Satellite scene ingestion
 [ ] PHASE 05: Oil slick detection
