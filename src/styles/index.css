@@ -171,10 +171,148 @@ html, body, #root {
   100% { transform: scale(2.2); opacity: 0; }
 }
 
-/* Leaflet dark map fixes */
+/* Application Shell Layout Grid */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--bg-primary);
+}
+
+.main-content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 390px);
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.map-container {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.inspector-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-medium);
+  overflow: hidden;
+  z-index: 1050;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.6);
+}
+
+.inspector-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Tactical KPI Ribbon Grid */
+.kpi-ribbon {
+  min-height: 48px;
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  align-items: center;
+  padding: 3px 8px;
+  gap: 6px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1180px) {
+  .kpi-ribbon {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: 4px 8px;
+  }
+  .main-content {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 350px);
+  }
+}
+
+@media (max-width: 767px) {
+  .app-shell {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+  .kpi-ribbon {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+  }
+  .map-container {
+    height: 52vh;
+    min-height: 340px;
+  }
+  .inspector-panel {
+    border-left: none;
+    border-top: 1px solid var(--border-medium);
+    height: auto;
+    min-height: 480px;
+    box-shadow: none;
+  }
+}
+
+/* Tactical dark OSM fallback tile filter */
+.tactical-dark-tiles {
+  filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(110%);
+}
+
+/* Leaflet dark map fixes & controls */
 .leaflet-container {
   background: #060911 !important;
   font-family: var(--font-sans) !important;
+}
+
+.leaflet-control-attribution {
+  background: rgba(8, 12, 22, 0.85) !important;
+  color: #64748b !important;
+  font-size: 0.62rem !important;
+  padding: 2px 6px !important;
+  border-radius: 3px !important;
+  font-family: var(--font-mono) !important;
+  border: 1px solid rgba(148, 163, 184, 0.15) !important;
+}
+.leaflet-control-attribution a {
+  color: #00f2ff !important;
+  text-decoration: none !important;
+}
+.leaflet-bar {
+  border: 1px solid rgba(148, 163, 184, 0.25) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 4px !important;
+  overflow: hidden;
+}
+.leaflet-bar a {
+  background-color: rgba(13, 19, 34, 0.95) !important;
+  color: #f8fafc !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2) !important;
+  transition: background 0.15s ease;
+}
+.leaflet-bar a:hover {
+  background-color: #1e293b !important;
+  color: #00f2ff !important;
 }
 
 .leaflet-popup-content-wrapper {
@@ -204,3 +342,4 @@ html, body, #root {
     display: block !important;
   }
 }
+

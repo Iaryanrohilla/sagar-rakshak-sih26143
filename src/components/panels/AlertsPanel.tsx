@@ -73,19 +73,20 @@ export const AlertsPanel: React.FC = () => {
               )}
 
               {/* Interactive State Transition Buttons */}
-              <div style={{ display: 'flex', gap: '6px', borderTop: '1px solid var(--border-subtle)', paddingTop: '8px', marginTop: '2px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', borderTop: '1px solid var(--border-subtle)', paddingTop: '8px', marginTop: '2px' }}>
                 {alert.status === 'NEW' && (
                   <button
                     onClick={() => updateAlertStatus(alert.id, 'ACKNOWLEDGED', 'Incident acknowledged by operations desk')}
                     style={{
                       flex: 1,
-                      padding: '6px',
+                      minWidth: '85px',
+                      padding: '5px 8px',
                       background: 'rgba(245, 158, 11, 0.15)',
                       border: '1px solid var(--accent-amber)',
                       borderRadius: 'var(--radius-sm)',
                       color: 'var(--accent-amber)',
                       fontFamily: 'var(--font-mono)',
-                      fontSize: '0.68rem',
+                      fontSize: '0.66rem',
                       fontWeight: 700,
                       cursor: 'pointer'
                     }}
@@ -94,23 +95,45 @@ export const AlertsPanel: React.FC = () => {
                   </button>
                 )}
 
+                {alert.status !== 'RESOLVED' && alert.status !== 'INVESTIGATING' && (
+                  <button
+                    onClick={() => updateAlertStatus(alert.id, 'INVESTIGATING', 'Active investigation launched into vessel tracks and sensor imagery')}
+                    style={{
+                      flex: 1,
+                      minWidth: '85px',
+                      padding: '5px 8px',
+                      background: 'rgba(0, 242, 255, 0.15)',
+                      border: '1px solid var(--accent-cyan)',
+                      borderRadius: 'var(--radius-sm)',
+                      color: 'var(--accent-cyan)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '0.66rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    INVESTIGATE
+                  </button>
+                )}
+
                 {alert.status !== 'ESCALATED' && alert.status !== 'RESOLVED' && (
                   <button
                     onClick={() => updateAlertStatus(alert.id, 'ESCALATED', 'Escalated to National Pollution Response Command')}
                     style={{
                       flex: 1,
-                      padding: '6px',
+                      minWidth: '85px',
+                      padding: '5px 8px',
                       background: 'rgba(239, 68, 68, 0.15)',
                       border: '1px solid var(--accent-crimson)',
                       borderRadius: 'var(--radius-sm)',
                       color: 'var(--accent-crimson)',
                       fontFamily: 'var(--font-mono)',
-                      fontSize: '0.68rem',
+                      fontSize: '0.66rem',
                       fontWeight: 700,
                       cursor: 'pointer'
                     }}
                   >
-                    ESCALATE COMMAND
+                    ESCALATE
                   </button>
                 )}
 
@@ -119,13 +142,14 @@ export const AlertsPanel: React.FC = () => {
                     onClick={() => updateAlertStatus(alert.id, 'RESOLVED', 'Pollution barrier deployed / incident stood down')}
                     style={{
                       flex: 1,
-                      padding: '6px',
+                      minWidth: '85px',
+                      padding: '5px 8px',
                       background: 'rgba(16, 185, 129, 0.15)',
                       border: '1px solid var(--accent-emerald)',
                       borderRadius: 'var(--radius-sm)',
                       color: 'var(--accent-emerald)',
                       fontFamily: 'var(--font-mono)',
-                      fontSize: '0.68rem',
+                      fontSize: '0.66rem',
                       fontWeight: 700,
                       cursor: 'pointer'
                     }}

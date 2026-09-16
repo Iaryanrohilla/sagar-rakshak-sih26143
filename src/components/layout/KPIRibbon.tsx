@@ -77,19 +77,7 @@ export const KPIRibbon: React.FC = () => {
   ]
 
   return (
-    <div
-      style={{
-        height: '52px',
-        background: 'var(--bg-surface)',
-        borderBottom: '1px solid var(--border-subtle)',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(8, 1fr)',
-        alignItems: 'center',
-        padding: '0 8px',
-        gap: '8px',
-        zIndex: 1000
-      }}
-    >
+    <div className="kpi-ribbon">
       {kpis.map((kpi, idx) => {
         const IconComponent = kpi.icon
         return (
@@ -98,34 +86,71 @@ export const KPIRibbon: React.FC = () => {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
-              padding: '4px 10px',
-              borderRight: idx < kpis.length - 1 ? '1px solid var(--border-subtle)' : 'none',
-              overflow: 'hidden'
+              gap: '8px',
+              padding: '4px 8px',
+              background: 'rgba(255, 255, 255, 0.02)',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--border-subtle)',
+              overflow: 'hidden',
+              minWidth: 0,
+              height: '42px'
             }}
           >
             <div
               style={{
-                width: '28px',
-                height: '28px',
+                width: '24px',
+                height: '24px',
                 borderRadius: 'var(--radius-sm)',
-                background: 'rgba(255, 255, 255, 0.04)',
+                background: 'rgba(255, 255, 255, 0.05)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0
               }}
             >
-              <IconComponent size={14} style={{ color: kpi.color }} />
+              <IconComponent size={13} style={{ color: kpi.color }} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', fontWeight: 600, letterSpacing: '0.04em' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+              <span
+                style={{
+                  fontSize: '0.58rem',
+                  color: 'var(--text-secondary)',
+                  fontFamily: 'var(--font-mono)',
+                  fontWeight: 600,
+                  letterSpacing: '0.03em',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+                title={kpi.label}
+              >
                 {kpi.label}
               </span>
-              <span style={{ fontSize: '0.85rem', fontWeight: 800, color: kpi.color, fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
+              <span
+                style={{
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  color: kpi.color,
+                  fontFamily: 'var(--font-mono)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  lineHeight: 1.15
+                }}
+                title={kpi.value}
+              >
                 {kpi.value}
               </span>
-              <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <span
+                style={{
+                  fontSize: '0.56rem',
+                  color: 'var(--text-muted)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+                title={kpi.subtext}
+              >
                 {kpi.subtext}
               </span>
             </div>

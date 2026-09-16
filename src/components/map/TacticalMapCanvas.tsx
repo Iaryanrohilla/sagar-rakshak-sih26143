@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import { useIncident } from '../../state/IncidentContext'
 import { PILOT_REGIONS } from '../../data/regions'
+import { createTacticalTileLayer } from '../../services/mapService'
 import { Compass, Wind, Waves } from 'lucide-react'
 
 export const TacticalMapCanvas: React.FC = () => {
@@ -26,11 +27,14 @@ export const TacticalMapCanvas: React.FC = () => {
       attributionControl: false
     })
 
-    // Tactical dark carto tile layer
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 18,
-      subdomains: 'abcd'
-    }).addTo(map)
+    // Tactical zero-key tile layer from mapService
+    const tileLayer = createTacticalTileLayer(L)
+    if (tileLayer) {
+      tileLayer.addTo(map)
+    }
+
+    // Attribution control bottom-right
+    L.control.attribution({ position: 'bottomright', prefix: 'Sagar Rakshak' }).addTo(map)
 
     // Zoom control in bottom right
     L.control.zoom({ position: 'bottomright' }).addTo(map)
@@ -39,7 +43,16 @@ export const TacticalMapCanvas: React.FC = () => {
     layerGroupRef.current = layerGroup
     mapInstanceRef.current = map
 
+    // Invalidate size on container resize
+    const resizeObserver = new ResizeObserver(() => {
+      map.invalidateSize()
+    })
+    if (mapContainerRef.current) {
+      resizeObserver.observe(mapContainerRef.current)
+    }
+
     return () => {
+      resizeObserver.disconnect()
       map.remove()
       mapInstanceRef.current = null
     }

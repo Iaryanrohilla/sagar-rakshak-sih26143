@@ -38,7 +38,8 @@ export const PipelineStepper: React.FC = () => {
         background: 'var(--bg-secondary)',
         borderBottom: '1px solid var(--border-medium)',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        flexShrink: 0
       }}
     >
       {/* Step Tabs */}
