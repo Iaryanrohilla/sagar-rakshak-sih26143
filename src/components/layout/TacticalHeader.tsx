@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react'
 import {
   Shield,
   Play,
-  FileText
+  FileText,
+  Cpu
 } from 'lucide-react'
 import { useIncident } from '../../state/IncidentContext'
 import { DEMO_SCENARIOS } from '../../data/scenarios'
@@ -18,7 +19,8 @@ export const TacticalHeader: React.FC = () => {
     startJudgeDemo,
     isJudgeDemoRunning,
     stopJudgeDemo,
-    setIsReportModalOpen
+    setIsReportModalOpen,
+    openExplainAI
   } = useIncident()
 
   // Real-time UTC & IST clock
@@ -236,6 +238,29 @@ export const TacticalHeader: React.FC = () => {
         >
           <Play size={11} fill={isJudgeDemoRunning ? 'var(--accent-crimson)' : 'var(--accent-cyan)'} />
           <span>{isJudgeDemoRunning ? 'STOP' : 'DEMO'}</span>
+        </button>
+
+        {/* Action: Explain AI */}
+        <button
+          onClick={() => openExplainAI('UNET_SEGMENTATION')}
+          title="Inspect Deep Learning & Physics Methodology"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            padding: '5px 10px',
+            background: 'rgba(0, 242, 255, 0.08)',
+            border: '1px solid rgba(0, 242, 255, 0.4)',
+            borderRadius: 'var(--radius-sm)',
+            color: 'var(--accent-cyan)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            cursor: 'pointer'
+          }}
+        >
+          <Cpu size={12} style={{ color: 'var(--accent-cyan)' }} />
+          <span>EXPLAIN AI</span>
         </button>
 
         {/* Action: Evidence Report Dossier */}

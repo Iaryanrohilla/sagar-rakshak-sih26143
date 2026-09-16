@@ -14,6 +14,8 @@ import { AlertsPanel } from './components/panels/AlertsPanel'
 import { AgencyRolePanel } from './components/panels/AgencyRolePanel'
 import { TimelinePanel } from './components/panels/TimelinePanel'
 import { EvidenceReportModal } from './components/reports/EvidenceReportModal'
+import { WhyVesselModal } from './components/modals/WhyVesselModal'
+import { ExplainAIModal } from './components/modals/ExplainAIModal'
 import { JudgeDemoController } from './components/demo/JudgeDemoController'
 import { IncidentSummaryCard } from './components/layout/IncidentSummaryCard'
 import { PILOT_REGIONS } from './data/regions'
@@ -256,6 +258,12 @@ const ControlRoomContent: React.FC = () => {
 
       {/* MARPOL Evidence Report Dossier Modal */}
       <EvidenceReportModal />
+
+      {/* Forensic Suspect Explainability Modal */}
+      <WhyVesselModal />
+
+      {/* Scientific Methodology & AI Explainability Modal */}
+      <ExplainAIModal />
     </div>
   )
 }

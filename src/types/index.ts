@@ -192,6 +192,7 @@ export interface AISVessel {
   beamMeters: number;
   draughtMeters: number;
   grossTonnage: number;
+  deadweightTons?: number;
   destination: string;
   eta: string;
   currentPosition: [number, number];
@@ -202,6 +203,7 @@ export interface AISVessel {
   trajectory: AISTrajectoryPoint[];
   hasBlackout: boolean;
   blackoutAnomaly?: AISBlackoutAnomaly;
+  blackoutDurationMin?: number;
 }
 
 export interface EvidenceFactor {
@@ -220,6 +222,8 @@ export interface SuspectRanking {
   evidenceFactors: EvidenceFactor[];
   legalAdmissibilityCaveat: string;
   recommendedAction: string;
+  cpaDistanceNm?: number;
+  cpaTimeDeltaMin?: number;
 }
 
 export type AlertSeverity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';

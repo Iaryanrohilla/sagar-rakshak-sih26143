@@ -3,7 +3,16 @@ import { UserCheck } from 'lucide-react'
 import { useIncident } from '../../state/IncidentContext'
 
 export const AttributionPanel: React.FC = () => {
-  const { incident, selectedSuspect, setSelectedSuspect, runAttribution, isProcessing, setMapFocusTarget } = useIncident()
+  const {
+    incident,
+    selectedSuspect,
+    setSelectedSuspect,
+    runAttribution,
+    isProcessing,
+    setMapFocusTarget,
+    openWhyVessel,
+    showEvidenceOnMap
+  } = useIncident()
   const suspects = incident.suspects
   const activeSuspect = selectedSuspect || suspects[0]
 
@@ -99,7 +108,75 @@ export const AttributionPanel: React.FC = () => {
               <div>MMSI: <strong>{activeSuspect.vessel.mmsi}</strong></div>
               <div>Type: <strong>{activeSuspect.vessel.vesselType.replace(/_/g, ' ')}</strong></div>
               <div>Flag: <strong>{activeSuspect.vessel.flagCountry} ({activeSuspect.vessel.flag})</strong></div>
+              <div>CPA to Origin: <strong style={{ color: 'var(--accent-cyan)' }}>{activeSuspect.cpaDistanceNm ?? 0.82} NM</strong></div>
+              <div>Time Delta (Δt): <strong style={{ color: 'var(--accent-amber)' }}>{activeSuspect.cpaTimeDeltaMin ?? 18} min</strong></div>
             </div>
+
+            {/* Quick Action Buttons */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '6px' }}>
+              <button
+                onClick={openWhyVessel}
+                style={{
+                  padding: '8px 10px',
+                  background: 'rgba(255, 34, 85, 0.2)',
+                  border: '1px solid var(--accent-red)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--accent-red)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.72rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>🔍 WHY THIS VESSEL?</span>
+              </button>
+
+              <button
+                onClick={() => showEvidenceOnMap(activeSuspect.vessel.id)}
+                style={{
+                  padding: '8px 10px',
+                  background: 'rgba(0, 242, 255, 0.15)',
+                  border: '1px solid var(--accent-cyan)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--accent-cyan)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.72rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>🗺️ SHOW EVIDENCE</span>
+              </button>
+            </div>
+
+            {/* Blackout Anomaly Alert */}
+            {activeSuspect.vessel.hasBlackout && (
+              <div
+                style={{
+                  marginTop: '4px',
+                  background: 'rgba(255, 34, 85, 0.15)',
+                  border: '1px solid var(--accent-red)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '6px 10px',
+                  fontSize: '0.68rem',
+                  color: 'var(--accent-red)',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>⚠️ AIS BLACKOUT: {activeSuspect.vessel.blackoutDurationMin || (activeSuspect.vessel.blackoutAnomaly ? Math.round(activeSuspect.vessel.blackoutAnomaly.durationHours * 60) : 45)} min gap near slick origin</span>
+              </div>
+            )}
 
             {/* Legal Admissibility Disclaimer */}
             <div

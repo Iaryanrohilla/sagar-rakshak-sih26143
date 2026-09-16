@@ -26,6 +26,8 @@ export type PipelineStage =
   | 'ALERTS'
   | 'AGENCY_VIEW';
 
+export type ImageryMode = 'SAR' | 'OPTICAL' | 'FUSION';
+
 interface IncidentContextType {
   // Active Scenario & Incident
   currentScenario: DemoScenario;
@@ -39,6 +41,42 @@ interface IncidentContextType {
   // Pipeline Navigation & Active Stage
   activeStage: PipelineStage;
   setActiveStage: (stage: PipelineStage) => void;
+
+  // Visual Imagery Mode (SAR / Optical / AI Fusion)
+  imageryMode: ImageryMode;
+  setImageryMode: (mode: ImageryMode) => void;
+
+  // Animated Backward Hindcast
+  hindcastPlaybackStep: number;
+  isHindcastPlaying: boolean;
+  startHindcastAnimation: () => void;
+  pauseHindcastAnimation: () => void;
+  setHindcastPlaybackStep: (step: number) => void;
+
+  // Animated Forward Forecast Time Slider (0h - 48h)
+  forecastSliderHour: number;
+  isForecastPlaying: boolean;
+  setForecastSliderHour: (hour: number) => void;
+  startForecastAnimation: () => void;
+  pauseForecastAnimation: () => void;
+
+  // Geo-linking & Evidence Highlighting
+  activeEvidenceHighlight: string | null;
+  showEvidenceOnMap: (vesselId: string) => void;
+  clearEvidenceHighlight: () => void;
+
+  // "Why This Vessel?" Forensic Explainability Modal
+  isWhyVesselModalOpen: boolean;
+  setIsWhyVesselModalOpen: (open: boolean) => void;
+  openWhyVessel: () => void;
+  closeWhyVessel: () => void;
+
+  // "Explain the AI" Deep Learning & Science Modal
+  isExplainAIModalOpen: boolean;
+  setIsExplainAIModalOpen: (open: boolean) => void;
+  explainAITopic: string;
+  openExplainAI: (topic?: string) => void;
+  closeExplainAI: () => void;
 
   // Pipeline Execution States
   isProcessing: boolean;
@@ -99,10 +137,111 @@ export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     DEMO_SCENARIOS[0].incident.detection.centroid
   )
 
+  // Visual Intelligence Layer State
+  const [imageryMode, setImageryMode] = useState<ImageryMode>('FUSION')
+
+  // Animated Backward Hindcast
+  const [hindcastPlaybackStep, setHindcastPlaybackStep] = useState<number>(-1)
+  const [isHindcastPlaying, setIsHindcastPlaying] = useState<boolean>(false)
+
+  // Animated Forward Forecast Time Slider (0 to 48 hours)
+  const [forecastSliderHour, setForecastSliderHour] = useState<number>(48)
+  const [isForecastPlaying, setIsForecastPlaying] = useState<boolean>(false)
+
+  // Geo-linking & Forensic Evidence Highlighting
+  const [activeEvidenceHighlight, setActiveEvidenceHighlight] = useState<string | null>(null)
+
+  // Modals
+  const [isWhyVesselModalOpen, setIsWhyVesselModalOpen] = useState<boolean>(false)
+  const [isExplainAIModalOpen, setIsExplainAIModalOpen] = useState<boolean>(false)
+  const [explainAITopic, setExplainAITopic] = useState<string>('UNET_SEGMENTATION')
+
   // Judge Demo state
   const [isJudgeDemoRunning, setIsJudgeDemoRunning] = useState<boolean>(false)
   const [judgeDemoStep, setJudgeDemoStep] = useState<number>(0)
   const [judgeDemoCaption, setJudgeDemoCaption] = useState<string>('')
+
+  // Hindcast animation ticker
+  useEffect(() => {
+    if (!isHindcastPlaying) return
+    const totalSteps = incident.hindcast.timeSteps.length
+    if (totalSteps <= 1) return
+
+    const timer = setInterval(() => {
+      setHindcastPlaybackStep((prev) => {
+        const next = prev + 1
+        if (next >= totalSteps) {
+          setIsHindcastPlaying(false)
+          return -1
+        }
+        return next
+      })
+    }, 750)
+
+    return () => clearInterval(timer)
+  }, [isHindcastPlaying, incident.hindcast.timeSteps.length])
+
+  // Forecast animation ticker (0h -> 48h)
+  useEffect(() => {
+    if (!isForecastPlaying) return
+
+    const timer = setInterval(() => {
+      setForecastSliderHour((prev) => {
+        const next = prev + 6
+        if (next > 48) {
+          setIsForecastPlaying(false)
+          return 48
+        }
+        return next
+      })
+    }, 380)
+
+    return () => clearInterval(timer)
+  }, [isForecastPlaying])
+
+  const startHindcastAnimation = () => {
+    setHindcastPlaybackStep(0)
+    setIsHindcastPlaying(true)
+  }
+
+  const pauseHindcastAnimation = () => {
+    setIsHindcastPlaying(false)
+  }
+
+  const startForecastAnimation = () => {
+    setForecastSliderHour(0)
+    setIsForecastPlaying(true)
+  }
+
+  const pauseForecastAnimation = () => {
+    setIsForecastPlaying(false)
+  }
+
+  const showEvidenceOnMap = (vesselId: string) => {
+    setActiveEvidenceHighlight(vesselId)
+    const targetSuspect = incident.suspects.find(s => s.vessel.id === vesselId) || incident.suspects[0]
+    if (targetSuspect) {
+      setSelectedSuspect(targetSuspect)
+      if (incident.hindcast.probableOrigin?.coordinates) {
+        setMapFocusTarget(incident.hindcast.probableOrigin.coordinates)
+      } else {
+        setMapFocusTarget(targetSuspect.vessel.currentPosition)
+      }
+    }
+  }
+
+  const clearEvidenceHighlight = () => {
+    setActiveEvidenceHighlight(null)
+  }
+
+  const openWhyVessel = () => setIsWhyVesselModalOpen(true)
+  const closeWhyVessel = () => setIsWhyVesselModalOpen(false)
+
+  const openExplainAI = (topic: string = 'UNET_SEGMENTATION') => {
+    setExplainAITopic(topic)
+    setIsExplainAIModalOpen(true)
+  }
+  const closeExplainAI = () => setIsExplainAIModalOpen(false)
 
   // Scenario Selection (Instant, deterministic)
   const selectScenario = useCallback((scenarioId: string) => {
@@ -116,6 +255,12 @@ export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setIsProcessing(false)
       setProcessingProgress(0)
       setProcessingStatusText('')
+      setImageryMode('FUSION')
+      setHindcastPlaybackStep(-1)
+      setIsHindcastPlaying(false)
+      setForecastSliderHour(48)
+      setIsForecastPlaying(false)
+      setActiveEvidenceHighlight(null)
     }
   }, [])
 
@@ -332,6 +477,7 @@ export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         case 1:
           setJudgeDemoCaption('Step 1/12: Initializing Satellite Pass over Mumbai High Western Fairway (Sentinel-1 SAR C-band Level-1 GRD).')
           setActiveStage('INGESTION')
+          setImageryMode('SAR')
           setMapFocusTarget(incident.scene.boundingBox[0])
           timeoutId = setTimeout(() => setJudgeDemoStep(2), 2600)
           break
@@ -344,6 +490,7 @@ export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
         case 3:
           setJudgeDemoCaption('Step 3/12: Running Deep Learning Segmentation (U-Net + ResNet-50) & Dual-Sensor Look-Alike Rejection.')
+          setImageryMode('FUSION')
           await runDetection()
           timeoutId = setTimeout(() => setJudgeDemoStep(4), 2200)
           break
@@ -362,6 +509,7 @@ export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         case 6:
           setJudgeDemoCaption('Step 6/12: Running OpenDrift Lagrangian Backward Hindcast — Reversing HYCOM ocean currents and ECMWF winds (3% windage).')
           await runHindcast()
+          startHindcastAnimation()
           timeoutId = setTimeout(() => setJudgeDemoStep(7), 2800)
           break
 
@@ -379,6 +527,7 @@ export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         case 9:
           setJudgeDemoCaption('Step 9/12: Multi-Factor Attribution Engine — Scoring MT OCEANUS PRIDE at 92.4/100 (Course alignment, proximity, AIS blackout).')
           await runAttribution()
+          showEvidenceOnMap(incident.aisVessels[0]?.id || 'vessel-mh-01')
           timeoutId = setTimeout(() => setJudgeDemoStep(10), 2800)
           break
 
@@ -388,7 +537,11 @@ export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             setSelectedSuspect(incident.suspects[0])
             setMapFocusTarget(incident.suspects[0].vessel.currentPosition)
           }
-          timeoutId = setTimeout(() => setJudgeDemoStep(11), 2400)
+          openWhyVessel()
+          timeoutId = setTimeout(() => {
+            closeWhyVessel()
+            setJudgeDemoStep(11)
+          }, 2600)
           break
 
         case 11:
@@ -426,6 +579,30 @@ export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setActiveRole,
         activeStage,
         setActiveStage,
+        imageryMode,
+        setImageryMode,
+        hindcastPlaybackStep,
+        isHindcastPlaying,
+        startHindcastAnimation,
+        pauseHindcastAnimation,
+        setHindcastPlaybackStep,
+        forecastSliderHour,
+        isForecastPlaying,
+        setForecastSliderHour,
+        startForecastAnimation,
+        pauseForecastAnimation,
+        activeEvidenceHighlight,
+        showEvidenceOnMap,
+        clearEvidenceHighlight,
+        isWhyVesselModalOpen,
+        setIsWhyVesselModalOpen,
+        openWhyVessel,
+        closeWhyVessel,
+        isExplainAIModalOpen,
+        setIsExplainAIModalOpen,
+        explainAITopic,
+        openExplainAI,
+        closeExplainAI,
         isProcessing,
         processingProgress,
         processingStatusText,

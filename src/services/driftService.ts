@@ -82,8 +82,8 @@ export class DriftService {
     onProgress?: (percent: number) => void
   ): Promise<DriftForecast> {
     for (let p = 25; p <= 100; p += 25) {
-      if (onProgress) onProgress(p)
-      await new Promise(r => setTimeout(r, 160))
+      if (typeof onProgress === 'function') onProgress(p)
+      await new Promise(r => setTimeout(r, 80))
     }
 
     const scenario = DEMO_SCENARIOS.find(s => s.incident.detection.id === detection.id)

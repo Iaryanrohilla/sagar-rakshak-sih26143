@@ -1,9 +1,9 @@
 import React from 'react'
 import { Satellite, Cpu, CheckCircle2 } from 'lucide-react'
-import { useIncident } from '../../state/IncidentContext'
+import { useIncident, ImageryMode } from '../../state/IncidentContext'
 
 export const SatellitePanel: React.FC = () => {
-  const { incident, runPreprocessing, isProcessing } = useIncident()
+  const { incident, runPreprocessing, isProcessing, imageryMode, setImageryMode, openExplainAI } = useIncident()
   const scene = incident.scene
 
   return (
@@ -52,6 +52,58 @@ export const SatellitePanel: React.FC = () => {
           <div>
             <span style={{ color: 'var(--text-secondary)' }}>Path/Frame:</span> <strong>{scene.pathRow}</strong>
           </div>
+        </div>
+      </div>
+
+      {/* Visual Imagery Mode Selector */}
+      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
+            VISUAL IMAGERY LAYER
+          </span>
+          <button
+            onClick={() => openExplainAI('UNET_SEGMENTATION')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--accent-cyan)',
+              fontSize: '0.68rem',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+          >
+            <Cpu size={12} />
+            <span>EXPLAIN AI</span>
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+          {(['SAR', 'OPTICAL', 'FUSION'] as ImageryMode[]).map((mode) => {
+            const active = imageryMode === mode
+            return (
+              <button
+                key={mode}
+                onClick={() => setImageryMode(mode)}
+                style={{
+                  padding: '8px 4px',
+                  background: active ? 'rgba(0, 242, 255, 0.15)' : 'var(--bg-primary)',
+                  border: `1px solid ${active ? 'var(--accent-cyan)' : 'var(--border-subtle)'}`,
+                  borderRadius: 'var(--radius-sm)',
+                  color: active ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.68rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  textAlign: 'center'
+                }}
+              >
+                {mode === 'SAR' ? '🛰️ SAR RADAR' : mode === 'OPTICAL' ? '🌈 OPTICAL' : '⚡ AI FUSION'}
+              </button>
+            )
+          })}
         </div>
       </div>
 

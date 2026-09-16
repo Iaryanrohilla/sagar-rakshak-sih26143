@@ -1,9 +1,25 @@
 import React from 'react'
-import { History, TrendingUp, Compass, MapPin, ShieldAlert } from 'lucide-react'
+import { History, TrendingUp, Compass, MapPin, ShieldAlert, Play, Pause, Cpu } from 'lucide-react'
 import { useIncident } from '../../state/IncidentContext'
 
 export const DriftPanel: React.FC = () => {
-  const { incident, runHindcast, runForecast, isProcessing, setMapFocusTarget } = useIncident()
+  const {
+    incident,
+    runHindcast,
+    runForecast,
+    isProcessing,
+    setMapFocusTarget,
+    startHindcastAnimation,
+    pauseHindcastAnimation,
+    isHindcastPlaying,
+    hindcastPlaybackStep,
+    forecastSliderHour,
+    setForecastSliderHour,
+    startForecastAnimation,
+    pauseForecastAnimation,
+    isForecastPlaying,
+    openExplainAI
+  } = useIncident()
   const hindcast = incident.hindcast
   const forecast = incident.forecast
   const origin = hindcast.probableOrigin
@@ -102,11 +118,73 @@ export const DriftPanel: React.FC = () => {
           </div>
         </div>
 
+        {/* Animated Hindcast Playback Controls */}
+        <div
+          style={{
+            background: 'var(--bg-primary)',
+            padding: '10px',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--border-medium)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <div>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--accent-cyan)' }}>
+              ANIMATED HINDCAST REWIND
+            </div>
+            <div style={{ fontSize: '0.64rem', color: 'var(--text-secondary)' }}>
+              {isHindcastPlaying
+                ? `Rewinding step ${hindcastPlaybackStep + 1} / ${hindcast.timeSteps.length}...`
+                : 'Simulate inverse drift step-by-step'}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button
+              onClick={isHindcastPlaying ? pauseHindcastAnimation : startHindcastAnimation}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '5px 10px',
+                background: 'rgba(0, 242, 255, 0.15)',
+                border: '1px solid var(--accent-cyan)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--accent-cyan)',
+                fontSize: '0.68rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              {isHindcastPlaying ? <Pause size={11} /> : <Play size={11} />}
+              <span>{isHindcastPlaying ? 'PAUSE' : 'REWIND'}</span>
+            </button>
+
+            <button
+              onClick={() => openExplainAI('LAGRANGIAN_DRIFT')}
+              title="Explain OpenDrift physics"
+              style={{
+                padding: '5px 8px',
+                background: 'transparent',
+                border: '1px solid var(--border-medium)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--text-secondary)',
+                fontSize: '0.68rem',
+                cursor: 'pointer'
+              }}
+            >
+              <Cpu size={12} />
+            </button>
+          </div>
+        </div>
+
         <button
           onClick={runHindcast}
           disabled={isProcessing}
           style={{
-            marginTop: '6px',
+            marginTop: '2px',
             padding: '8px 14px',
             background: 'rgba(0, 242, 255, 0.15)',
             border: '1px solid var(--accent-cyan)',
@@ -136,6 +214,62 @@ export const DriftPanel: React.FC = () => {
           <span className={`badge ${forecast.landfallRisk.riskLevel === 'CRITICAL' ? 'badge-crimson' : forecast.landfallRisk.riskLevel === 'HIGH' ? 'badge-amber' : 'badge-emerald'}`}>
             {forecast.landfallRisk.riskLevel} RISK
           </span>
+        </div>
+
+        {/* Forecast Time Slider HUD */}
+        <div
+          style={{
+            background: 'var(--bg-primary)',
+            padding: '10px',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--border-medium)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--accent-amber)', fontFamily: 'var(--font-mono)' }}>
+              FORECAST HORIZON: +{forecastSliderHour} HOURS
+            </span>
+            <button
+              onClick={isForecastPlaying ? pauseForecastAnimation : startForecastAnimation}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '3px 8px',
+                background: 'rgba(255, 187, 0, 0.15)',
+                border: '1px solid var(--accent-amber)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--accent-amber)',
+                fontSize: '0.64rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              {isForecastPlaying ? <Pause size={10} /> : <Play size={10} />}
+              <span>{isForecastPlaying ? 'PAUSE' : 'PLAY 48H'}</span>
+            </button>
+          </div>
+
+          <input
+            type="range"
+            min="0"
+            max="48"
+            step="6"
+            value={forecastSliderHour}
+            onChange={(e) => setForecastSliderHour(Number(e.target.value))}
+            style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--accent-amber)' }}
+          />
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+            <span>T+0h (Detection)</span>
+            <span>T+12h</span>
+            <span>T+24h</span>
+            <span>T+36h</span>
+            <span>T+48h (Max Horizon)</span>
+          </div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.72rem', fontFamily: 'var(--font-mono)' }}>
