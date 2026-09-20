@@ -15,7 +15,21 @@ export const SatellitePanel: React.FC = () => {
             SATELLITE DATA INGESTION
           </h3>
         </div>
-        <span className="badge badge-cyan">{scene.sensorType} INGEST</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span className="badge badge-cyan">{scene.sensorType} INGEST</span>
+          <span
+            className="badge"
+            style={{
+              background: 'rgba(245, 158, 11, 0.15)',
+              color: 'var(--accent-amber)',
+              border: '1px solid rgba(245, 158, 11, 0.4)',
+              fontSize: '0.62rem'
+            }}
+            title="Synthetic Sentinel-1 / Sentinel-2 orbital pass for demonstration."
+          >
+            ● SIMULATED PASS
+          </span>
+        </div>
       </div>
 
       {/* Scene Overview Card */}

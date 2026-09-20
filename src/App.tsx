@@ -13,6 +13,7 @@ import { AttributionPanel } from './components/panels/AttributionPanel'
 import { AlertsPanel } from './components/panels/AlertsPanel'
 import { AgencyRolePanel } from './components/panels/AgencyRolePanel'
 import { TimelinePanel } from './components/panels/TimelinePanel'
+import { TimelineScrubber } from './components/timeline/TimelineScrubber'
 import { EvidenceReportModal } from './components/reports/EvidenceReportModal'
 import { WhyVesselModal } from './components/modals/WhyVesselModal'
 import { ExplainAIModal } from './components/modals/ExplainAIModal'
@@ -39,48 +40,46 @@ const ControlRoomContent: React.FC = () => {
       {/* 3. PIPELINE NAVIGATION */}
       <PipelineStepper />
 
-      {/* 4. MAIN CONTENT (MAP + INSPECTOR PANEL) */}
-      <div
-        className="main-content"
-        style={{
-          gridTemplateColumns: isInspectorCollapsed ? '1fr 0px' : undefined
-        }}
-      >
-        {/* Main Map Workspace (Remaining Viewport) */}
+      {/* 4. MAIN CONTENT (FULL-BLEED MAP + TIMELINE SCRUBBER + DOCKED HUD) */}
+      <div className="main-content">
+        {/* Main Full-Bleed Map Workspace */}
         <div className="map-container">
           <TacticalMapCanvas />
-
-          {/* Floating Show Inspector Button when Collapsed */}
-          {isInspectorCollapsed && (
-            <button
-              onClick={() => setIsInspectorCollapsed(false)}
-              title="Show Inspector Panel"
-              style={{
-                position: 'absolute',
-                top: '14px',
-                right: '14px',
-                zIndex: 1000,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                background: 'rgba(8, 12, 22, 0.92)',
-                border: '1px solid var(--accent-cyan)',
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--accent-cyan)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.7rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: 'var(--shadow-cyan-glow)',
-                backdropFilter: 'blur(8px)'
-              }}
-            >
-              <ChevronLeft size={14} />
-              <span>SHOW INSPECTOR</span>
-            </button>
-          )}
         </div>
+
+        {/* Dedicated Bottom Docked Interactive Timeline Scrubber */}
+        <TimelineScrubber />
+
+        {/* Floating Show Inspector Button when Collapsed */}
+        {isInspectorCollapsed && (
+          <button
+            onClick={() => setIsInspectorCollapsed(false)}
+            title="Show Inspector Panel"
+            style={{
+              position: 'absolute',
+              top: '14px',
+              right: '14px',
+              zIndex: 1000,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              background: 'rgba(8, 12, 22, 0.92)',
+              border: '1px solid var(--accent-cyan)',
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--accent-cyan)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: 'var(--shadow-cyan-glow)',
+              backdropFilter: 'blur(8px)'
+            }}
+          >
+            <ChevronLeft size={14} />
+            <span>SHOW INSPECTOR</span>
+          </button>
+        )}
 
         {/* Tactical Right Inspector Panel */}
         {!isInspectorCollapsed && (

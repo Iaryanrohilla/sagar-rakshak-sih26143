@@ -103,8 +103,87 @@ export class ReportService {
           action: 'AIS Stream Cross-Correlated; Multi-Factor Forensic Attribution Matrix Calculated',
           officer: 'Forensic Attribution Engine'
         }
-      ]
+      ],
+      sha256Digest: ReportService.computeEvidenceHash(incident, primarySuspect)
     }
+  }
+
+  /**
+   * Generates a deterministic SHA-256 cryptographic digest for MARPOL legal chain-of-custody
+   */
+  public static computeEvidenceHash(incident: Incident, primarySuspect: any): string {
+    const payload = `${incident.id}|${incident.scene.id}|${incident.detection.timestamp}|${primarySuspect?.vessel?.imo || 'NONE'}|${primarySuspect?.overallScore || 0}|${incident.hindcast.probableOrigin.coordinates.join(',')}`
+    return ReportService.sha256(payload)
+  }
+
+  private static sha256(ascii: string): string {
+    function rightRotate(value: number, amount: number) {
+      return (value >>> amount) | (value << (32 - amount));
+    }
+    const mathPow = Math.pow;
+    const maxWord = mathPow(2, 32);
+    let i: number, j: number;
+    let result = '';
+
+    const words: number[] = [];
+    const asciiBitLength = ascii.length * 8;
+    
+    const hash: number[] = [];
+    const k: number[] = [];
+    let primeCounter = 0;
+
+    const isComposite: Record<number, number> = {};
+    for (let candidate = 2; primeCounter < 64; candidate++) {
+      if (!isComposite[candidate]) {
+        for (i = 0; i < 300; i += candidate) {
+          isComposite[i] = candidate;
+        }
+        hash[primeCounter] = (mathPow(candidate, 0.5) * maxWord) | 0;
+        k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
+      }
+    }
+
+    ascii += '\x80';
+    while ((ascii.length % 64) - 56) ascii += '\x00';
+    for (i = 0; i < ascii.length; i++) {
+      j = ascii.charCodeAt(i);
+      words[i >> 2] |= j << (((3 - i) % 4) * 8);
+    }
+    words[words.length] = (asciiBitLength / maxWord) | 0;
+    words[words.length] = asciiBitLength;
+
+    for (j = 0; j < words.length; ) {
+      const w = words.slice(j, (j += 16));
+      const oldHash = [...hash];
+
+      for (i = 0; i < 64; i++) {
+        const w15 = w[i - 15], w2 = w[i - 2];
+        const s0 = rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3);
+        const s1 = rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10);
+        const ch = (hash[4] & hash[5]) ^ (~hash[4] & hash[6]);
+        const maj = (hash[0] & hash[1]) ^ (hash[0] & hash[2]) ^ (hash[1] & hash[2]);
+        const s_0 = rightRotate(hash[0], 2) ^ rightRotate(hash[0], 13) ^ rightRotate(hash[0], 22);
+        const s_1 = rightRotate(hash[4], 6) ^ rightRotate(hash[4], 11) ^ rightRotate(hash[4], 25);
+        const t1 = (hash[7] + s_1 + ch + k[i] + (w[i] = i < 16 ? w[i] : (w[i - 16] + s0 + w[i - 7] + s1) | 0)) | 0;
+        const t2 = (s_0 + maj) | 0;
+
+        hash.pop();
+        hash.unshift((t1 + t2) | 0);
+        hash[4] = (hash[4] + t1) | 0;
+      }
+
+      for (i = 0; i < 8; i++) {
+        hash[i] = (hash[i] + oldHash[i]) | 0;
+      }
+    }
+
+    for (i = 0; i < 8; i++) {
+      for (j = 3; j >= 0; j--) {
+        const b = (hash[i] >> (8 * j)) & 255;
+        result += (b < 16 ? '0' : '') + b.toString(16);
+      }
+    }
+    return result;
   }
 
   /**

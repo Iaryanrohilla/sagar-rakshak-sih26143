@@ -16,7 +16,21 @@ export const AISPanel: React.FC = () => {
             AIS TRAFFIC CORRELATION
           </h3>
         </div>
-        <span className="badge badge-cyan">{vessels.length} VESSELS CORRELATED</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span className="badge badge-cyan">{vessels.length} VESSELS CORRELATED</span>
+          <span
+            className="badge"
+            style={{
+              background: 'rgba(245, 158, 11, 0.15)',
+              color: 'var(--accent-amber)',
+              border: '1px solid rgba(245, 158, 11, 0.4)',
+              fontSize: '0.62rem'
+            }}
+            title="Synthetic AIS historical stream with simulated blackout gaps."
+          >
+            ● SIMULATED AIS
+          </span>
+        </div>
       </div>
 
       {/* AIS Stream Summary Banner */}

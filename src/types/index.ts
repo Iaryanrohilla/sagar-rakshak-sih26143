@@ -313,6 +313,7 @@ export interface EvidenceReport {
     action: string;
     officer: string;
   }[];
+  sha256Digest?: string;
 }
 
 export interface Incident {

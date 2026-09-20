@@ -40,31 +40,31 @@ This document defines the sequential build phases for SAGAR RAKSHAK. Every task 
 ---
 
 ### Phase 4: Full-Bleed Map Canvas & Interactive Timeline Scrubber
-- [ ] **TASK-04A: Refactor Layout to Full-Bleed Map Workspace**  
+- [X] **TASK-04A: Refactor Layout to Full-Bleed Map Workspace**  
   *Done When:* Primary layout in `App.tsx` gives 100% viewport to the map canvas, and left/right panels dock as floating translucent HUD glassmorphism overlays without letterboxing the map.
-- [ ] **TASK-04B: Build Interactive Timeline Scrubber Component**  
+- [X] **TASK-04B: Build Interactive Timeline Scrubber Component**  
   *Done When:* Scrubber renders at bottom with Play/Pause button, 1x/2x/5x speed selector, reverse hindcast step ticker ($T_0 \dots T_{detect}$), and forward 48-hour forecast slider ($T_{detect} \dots T+48h$).
-- [ ] **TASK-04C: Synchronize Map Animations with Scrubber**  
+- [X] **TASK-04C: Synchronize Map Animations with Scrubber**  
   *Done When:* Pressing Play dynamically animates backward Lagrangian particle movement toward the origin zone and forward forecast uncertainty cone expansion.
 
 ---
 
 ### Phase 5: Ranked Suspect Leaderboard & Forensic Factor Drilldown
-- [ ] **TASK-05A: Re-style Attribution Panel as a Tactical Leaderboard**  
+- [X] **TASK-05A: Re-style Attribution Panel as a Tactical Leaderboard**  
   *Done When:* Suspects are presented in a ranked leaderboard (`#01`, `#02`, `#03`) with score bars and top 2-3 driving factor badges (`CPA 0.8nm`, `AIS GAP 4.2h`, `COURSE MATCH 89%`) rather than plain percentages.
-- [ ] **TASK-05B: Implement Intercept Vector & Evidence Highlighting on Map**  
+- [X] **TASK-05B: Implement Intercept Vector & Evidence Highlighting on Map**  
   *Done When:* Clicking "Show Evidence on Map" draws a tactical intercept vector connecting the suspect vessel track directly to the slick origin zone and centers the camera.
-- [ ] **TASK-05C: Enhance "Why This Vessel?" Forensic Breakdown Modal**  
+- [X] **TASK-05C: Enhance "Why This Vessel?" Forensic Breakdown Modal**  
   *Done When:* Modal clearly displays the 5-factor Bayesian weights ($w_{CPA}, w_{time}, w_{gap}, w_{course}, w_{draft}$), raw sensor telemetry, and MARPOL violation checklist.
 
 ---
 
 ### Phase 6: SIMULATED Badging & Multi-Agency Alert Workflow
-- [ ] **TASK-06A: Add High-Visibility [SIMULATED] Badges to All Synthetic Modules**  
+- [X] **TASK-06A: Add High-Visibility [SIMULATED] Badges to All Synthetic Modules**  
   *Done When:* The top header and each relevant panel (Satellite Scene, Metocean Drift, AIS Traffic) displays an unambiguous `[SIMULATED DATA]` badge with explanatory tooltip.
-- [ ] **TASK-06B: Connect Multi-Agency Alert Action Tray**  
+- [X] **TASK-06B: Connect Multi-Agency Alert Action Tray**  
   *Done When:* Clicking agency action buttons (Coast Guard PRT dispatch, DG Shipping detention, Port Authority boom deployment) transitions incident state and updates the audit log.
-- [ ] **TASK-06C: Validate Print & PDF Export of MARPOL Forensic Dossier**  
+- [X] **TASK-06C: Validate Print & PDF Export of MARPOL Forensic Dossier**  
   *Done When:* Clicking "Download MARPOL Dossier" opens a print-formatted evidence view with SHA-256 integrity seal, satellite coordinates, and suspect vessel proofs.
 
 ---

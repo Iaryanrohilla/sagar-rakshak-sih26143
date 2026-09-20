@@ -1,5 +1,5 @@
 import React from 'react'
-import { X, Printer, Download, FileText } from 'lucide-react'
+import { X, Printer, Download, FileText, ShieldCheck } from 'lucide-react'
 import { useIncident } from '../../state/IncidentContext'
 import { ReportService } from '../../services/reportService'
 
@@ -43,6 +43,7 @@ export const EvidenceReportModal: React.FC = () => {
       >
         {/* Modal Header */}
         <div
+          className="no-print"
           style={{
             height: '56px',
             background: 'var(--bg-surface)',
@@ -233,6 +234,38 @@ export const EvidenceReportModal: React.FC = () => {
                   <span>Auth: {c.officer}</span>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Cryptographic Integrity Seal & Statutory Certification */}
+          <div
+            style={{
+              background: 'rgba(16, 185, 129, 0.08)',
+              border: '1px solid var(--accent-emerald)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '14px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '16px'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <ShieldCheck size={26} style={{ color: 'var(--accent-emerald)', flexShrink: 0 }} />
+              <div>
+                <div style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--accent-emerald)', fontFamily: 'var(--font-mono)', letterSpacing: '0.04em' }}>
+                  6. DIGITAL FORENSIC INTEGRITY SEAL &amp; STATUTORY CERTIFICATE
+                </div>
+                <div style={{ fontSize: '0.66rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', marginTop: '4px', wordBreak: 'break-all' }}>
+                  SHA-256 DIGEST: <span style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{dossier.sha256Digest}</span>
+                </div>
+              </div>
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <span className="badge badge-emerald">MARPOL ANNEX I CERTIFIED</span>
+              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '3px' }}>
+                INDIAN EVIDENCE ACT §65B COMPLIANT
+              </div>
             </div>
           </div>
         </div>

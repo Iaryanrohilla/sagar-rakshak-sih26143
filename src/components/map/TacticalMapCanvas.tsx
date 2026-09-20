@@ -620,9 +620,9 @@ export const TacticalMapCanvas: React.FC = () => {
       <div
         style={{
           position: 'absolute',
-          bottom: '24px',
+          bottom: '106px',
           left: '16px',
-          zIndex: 1000,
+          zIndex: 850,
           background: 'var(--bg-glass)',
           backdropFilter: 'blur(8px)',
           border: '1px solid var(--border-subtle)',

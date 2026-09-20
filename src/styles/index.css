@@ -183,34 +183,38 @@ html, body, #root {
 
 .main-content {
   flex: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 390px);
+  position: relative;
   min-height: 0;
   min-width: 0;
   overflow: hidden;
-  position: relative;
 }
 
 .map-container {
-  min-width: 0;
-  min-height: 0;
+  position: absolute;
+  inset: 0;
   height: 100%;
   width: 100%;
-  position: relative;
   overflow: hidden;
+  z-index: 1;
 }
 
 .inspector-panel {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  bottom: 110px;
+  width: 420px;
+  max-width: calc(100vw - 28px);
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  min-width: 0;
-  height: 100%;
-  background: var(--bg-secondary);
-  border-left: 1px solid var(--border-medium);
+  background: rgba(8, 12, 22, 0.88);
+  backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), 0 0 18px rgba(0, 240, 255, 0.15);
   overflow: hidden;
-  z-index: 1050;
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.6);
+  z-index: 950;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .inspector-body {
@@ -340,6 +344,16 @@ html, body, #root {
   }
   .print-only {
     display: block !important;
+  }
+  div[style*="position: fixed"],
+  div[style*="position: 'fixed'"] {
+    position: static !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+  }
+  div[style*="overflowY: auto"],
+  div[style*="overflow-y: auto"] {
+    overflow: visible !important;
   }
 }
 

@@ -75,5 +75,33 @@ This document preserves architectural memory, key technical decisions, known iss
 3. Validated all endpoints with automated test suite `backend/tests/test_api.py`: 12/12 test assertions passing.
 4. Created Postman test collection `docs/api/sagar_rakshak_postman_collection.json` containing 12 parameterized requests with automatic assertions and environment variables.
 
+---
+
+## Session Ledger: 2026-09-20 (Phase 4, 5 & 6 Full-Bleed UI, Scrubber & Leaderboard)
+
+### Active Phase
+- **Phase 4:** Full-Bleed Map Canvas & Interactive Timeline Scrubber [TASK-04]
+- **Phase 5:** Ranked Suspect Leaderboard & Forensic Factor Drilldown [TASK-05]
+- **Phase 6:** SIMULATED Badging & Multi-Agency Alert Workflow [TASK-06]
+
+### Accomplished in this Session
+1. **Full-Bleed Map Workspace:** Refactored CSS layout so `.main-content` is full-bleed (`inset: 0`) and the inspector panel is docked as a translucent floating glassmorphic HUD (`backdrop-filter: blur(12px)`) with collapsible toggle.
+2. **Interactive Timeline Scrubber:** Implemented `TimelineScrubber.tsx` docked at the bottom of the map canvas featuring:
+   - Play/Pause button with interactive tick animation
+   - 1x, 2x, 5x playback speed selectors
+   - Reverse hindcast step scrubber ($T_0 \dots T_{detect}$)
+   - Forward 48-hour forecast slider ($T_{detect} \dots T+48h$) with Metocean drift telemetry pills
+   - Unambiguous `[● SIMULATED TIMELINE]` badge
+3. **Tactical Suspect Leaderboard:** Redesigned `AttributionPanel.tsx` from plain buttons to a ranked tactical leaderboard:
+   - Rank badges (`#01`, `#02`, `#03`)
+   - Dual-encoded attribution score bars (e.g. `94% HIGH CONFIDENCE`)
+   - Driving factor pills (`CPA 0.8 NM`, `AIS GAP 4.2H`, `COURSE MATCH 89%`)
+   - Interactive "Why This Vessel?" 5-factor Bayesian weights modal
+   - "Show Evidence on Map" tactical intercept vector drawing
+4. **Transparent Simulation Badging:** Embedded persistent `[● SIMULATED DATA]` badges across the tactical header, satellite scene ingestion panel, and AIS traffic panel.
+5. **MARPOL Forensic Evidence Dossier & SHA-256 Seal:** Added cryptographic integrity digest (`sha256Digest`) computation in `ReportService` and Section 6 Digital Integrity Seal in `EvidenceReportModal.tsx` for court admissibility (Sec. 65B Indian Evidence Act).
+6. **Build & Test Verification:** 20/20 Vitest tests pass; `npm run build` exits 0 with optimized production bundle.
+
 ### Exact Next Task
-- Proceed to Phase 4: Full-Bleed Map Canvas & Interactive Timeline Scrubber Overhaul [TASK-04].
+- Proceed to Phase 7: Automated Testing & DevTools Verification (Playwright E2E test in `tests/e2e/control_room.spec.ts`, Chrome DevTools audit, Postman validation) [TASK-07].
+

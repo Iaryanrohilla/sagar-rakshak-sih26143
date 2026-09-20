@@ -211,9 +211,25 @@ export const TacticalHeader: React.FC = () => {
           </select>
         </div>
 
-        {/* Demo Mode Badge */}
-        <span className="badge badge-cyan" style={{ fontSize: '0.62rem', letterSpacing: '0.04em', padding: '2px 6px' }}>
-          DEMO MODE
+        {/* Transparent Simulation Badge */}
+        <span
+          className="badge"
+          style={{
+            fontSize: '0.66rem',
+            letterSpacing: '0.05em',
+            padding: '3px 8px',
+            background: 'rgba(245, 158, 11, 0.15)',
+            color: 'var(--accent-amber)',
+            border: '1px solid rgba(245, 158, 11, 0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            boxShadow: '0 0 8px rgba(245, 158, 11, 0.2)'
+          }}
+          title="SIMULATED DATASET // Synthetic SAR & AIS Stream calibrated for SIH 2026 demonstration."
+        >
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-amber)', display: 'inline-block' }} />
+          SIMULATED DATA
         </span>
 
         {/* Action: Run Judge Demo */}
