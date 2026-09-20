@@ -1,0 +1,348 @@
+{
+  "info": {
+    "_postman_id": "sagar-rakshak-c4i-api-v1",
+    "name": "SAGAR RAKSHAK REST API (SIH 2026 PS 26143)",
+    "description": "Postman test collection covering the SAGAR RAKSHAK Maritime Intelligence & Oil Spill Attribution API endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "incidentId",
+      "value": "SR-KUTCH-01",
+      "type": "string"
+    },
+    {
+      "key": "regionId",
+      "value": "gulf-of-kutch",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. System Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "health"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Service status is ONLINE', function () { const data = pm.response.json(); pm.expect(data.status).to.eql('ONLINE'); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. List Pilot Regions",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/regions",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "regions"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Contains 3 pilot regions', function () { const data = pm.response.json(); pm.expect(data.length).to.be.at.least(3); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Get Pilot Region by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/regions/{{regionId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "regions", "{{regionId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Region ID matches', function () { const data = pm.response.json(); pm.expect(data.id).to.eql(pm.variables.get('regionId')); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. List Incidents",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/incidents?region_id={{regionId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "incidents"],
+          "query": [
+            {
+              "key": "region_id",
+              "value": "{{regionId}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Incident array returned', function () { const data = pm.response.json(); pm.expect(Array.isArray(data)).to.be.true; });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Get Incident Detail",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/incidents/{{incidentId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "incidents", "{{incidentId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Incident has telemetry and polygon', function () { const data = pm.response.json(); pm.expect(data.slickPolygon).to.be.an('array'); pm.expect(data.weathering).to.have.property('estimatedAgeHours'); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Get Satellite Detections",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/incidents/{{incidentId}}/detections",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "incidents", "{{incidentId}}", "detections"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Look-alike rejection verified', function () { const data = pm.response.json(); pm.expect(data.lookAlikeRejection.algalBloom.status).to.eql('REJECTED'); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Run Drift Hindcast",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"hours\": 18.4\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/incidents/{{incidentId}}/drift/hindcast",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "incidents", "{{incidentId}}", "drift", "hindcast"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Simulation type is HINDCAST', function () { const data = pm.response.json(); pm.expect(data.simulationType).to.eql('HINDCAST'); pm.expect(data.originZone).to.be.an('object'); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Run Drift Forecast",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"hours\": 48.0\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/incidents/{{incidentId}}/drift/forecast",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "incidents", "{{incidentId}}", "drift", "forecast"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Simulation type is FORECAST with Landfall Threats', function () { const data = pm.response.json(); pm.expect(data.simulationType).to.eql('FORECAST'); pm.expect(data.landfallThreats.length).to.be.greaterThan(0); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Get Correlated Vessels",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/incidents/{{incidentId}}/vessels",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "incidents", "{{incidentId}}", "vessels"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Vessels returned with MMSI', function () { const data = pm.response.json(); pm.expect(data[0]).to.have.property('mmsi'); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Get Ranked Suspects",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/incidents/{{incidentId}}/suspects",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "incidents", "{{incidentId}}", "suspects"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Rank 1 suspect has attribution score and CPA', function () { const data = pm.response.json(); pm.expect(data[0].rank).to.eql(1); pm.expect(data[0].attributionScore).to.be.a('number'); pm.expect(data[0].cpaNauticalMiles).to.be.a('number'); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Dispatch Incident Alert Action",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"agency\": \"COAST_GUARD\",\n  \"actionType\": \"DISPATCH_PRT\",\n  \"targetUnits\": [\"ICGS SAMUDRA PAVAK\", \"ICG Dornier Sortie CG-782\"]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/incidents/{{incidentId}}/alerts/dispatch",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "incidents", "{{incidentId}}", "alerts", "dispatch"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Dispatch succeeds', function () { const data = pm.response.json(); pm.expect(data.success).to.be.true; });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Export MARPOL Forensic Dossier",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/incidents/{{incidentId}}/dossier",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "incidents", "{{incidentId}}", "dossier"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Dossier contains SHA-256 digest and legal violations', function () { const data = pm.response.json(); pm.expect(data.sha256Digest).to.have.lengthOf(64); pm.expect(data.statutoryViolations.length).to.be.greaterThan(0); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}

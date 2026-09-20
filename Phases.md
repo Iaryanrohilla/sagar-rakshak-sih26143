@@ -30,11 +30,11 @@ This document defines the sequential build phases for SAGAR RAKSHAK. Every task 
 ---
 
 ### Phase 3: Backend REST API Service & PostGIS Database Contract
-- [ ] **TASK-03A: Establish Python FastAPI Microservice Skeleton**  
+- [X] **TASK-03A: Establish Python FastAPI Microservice Skeleton**  
   *Done When:* `backend/main.py` is initialized with FastAPI, Pydantic schemas, and CORS middleware configured for Vite frontend.
-- [ ] **TASK-03B: Implement Core REST API Endpoints**  
-  *Done When:* Endpoints `/api/v1/health`, `/api/v1/regions`, `/api/v1/incidents`, `/api/v1/incidents/{id}/detections`, `/api/v1/incidents/{id}/drift/hindcast`, `/api/v1/incidents/{id}/drift/forecast`, `/api/v1/incidents/{id}/suspects`, and `/api/v1/incidents/{id}/dossier` are implemented and return typed JSON matching PostGIS schema.
-- [ ] **TASK-03C: Generate Postman Collection**  
+- [X] **TASK-03B: Implement Core REST API Endpoints**  
+  *Done When:* Endpoints `/api/v1/health`, `/api/v1/regions`, `/api/v1/incidents`, `/api/v1/incidents/{id}/detections`, `/api/v1/incidents/{id}/drift/hindcast`, `/api/v1/incidents/{id}/drift/forecast`, `/api/v1/incidents/{id}/suspects`, and `/api/v1/incidents/{id}/dossier` are implemented and return typed JSON matching PostGIS schema (12/12 automated API tests passing).
+- [X] **TASK-03C: Generate Postman Collection**  
   *Done When:* `docs/api/sagar_rakshak_postman_collection.json` is generated covering all endpoints with mock tests and environment variables.
 
 ---

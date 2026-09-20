@@ -49,3 +49,31 @@ This document preserves architectural memory, key technical decisions, known iss
 
 ### Exact Next Task
 - Execute Phase 3: Backend REST API Service & PostGIS Database Contract (`backend/main.py`, models, and Postman collection) [TASK-03].
+
+---
+
+## Session Ledger: 2026-09-20 (Phase 3 Backend API & PostGIS Contract)
+
+### Active Phase
+- **Phase 3:** Backend REST API Service & PostGIS Database Contract [TASK-03]
+
+### Accomplished in this Session
+1. Initialized `backend/main.py` using Python FastAPI with CORS middleware, Pydantic domain models in `backend/models.py`, and realistic deterministic pilot scenarios in `backend/scenarios_data.py`.
+2. Implemented all 12 core REST API endpoints:
+   - `/api/v1/health`
+   - `/api/v1/regions`
+   - `/api/v1/regions/{id}`
+   - `/api/v1/incidents`
+   - `/api/v1/incidents/{id}`
+   - `/api/v1/incidents/{id}/detections`
+   - `/api/v1/incidents/{id}/drift/hindcast`
+   - `/api/v1/incidents/{id}/drift/forecast`
+   - `/api/v1/incidents/{id}/vessels`
+   - `/api/v1/incidents/{id}/suspects`
+   - `/api/v1/incidents/{id}/alerts/dispatch`
+   - `/api/v1/incidents/{id}/dossier`
+3. Validated all endpoints with automated test suite `backend/tests/test_api.py`: 12/12 test assertions passing.
+4. Created Postman test collection `docs/api/sagar_rakshak_postman_collection.json` containing 12 parameterized requests with automatic assertions and environment variables.
+
+### Exact Next Task
+- Proceed to Phase 4: Full-Bleed Map Canvas & Interactive Timeline Scrubber Overhaul [TASK-04].
