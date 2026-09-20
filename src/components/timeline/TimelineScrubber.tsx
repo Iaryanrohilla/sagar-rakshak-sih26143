@@ -150,6 +150,7 @@ export const TimelineScrubber: React.FC = () => {
             transition: 'all 0.15s ease'
           }}
           title={isPlaying ? 'Pause Simulation Replay' : 'Play Simulation Replay'}
+          aria-label={isPlaying ? 'Pause Simulation Replay' : 'Play Simulation Replay'}
         >
           {isPlaying ? <Pause size={16} /> : <Play size={16} style={{ marginLeft: '2px' }} />}
         </button>

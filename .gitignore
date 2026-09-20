@@ -30,6 +30,8 @@ dist-ssr
 *.pem
 *.key
 
-# Coverage & Vercel
+# Coverage & Vercel & Playwright
 coverage
 .vercel
+test-results/
+playwright-report/

@@ -7,5 +7,9 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true
+  },
+  // @ts-expect-error vitest config
+  test: {
+    include: ['src/tests/**/*.test.ts']
   }
 })

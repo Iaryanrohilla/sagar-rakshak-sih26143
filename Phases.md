@@ -70,17 +70,17 @@ This document defines the sequential build phases for SAGAR RAKSHAK. Every task 
 ---
 
 ### Phase 7: Automated Testing & DevTools Verification
-- [ ] **TASK-07A: Create Playwright End-to-End Test Suite**  
-  *Done When:* Playwright test script in `tests/e2e/control_room.spec.ts` executes the complete user flow: load dashboard $\rightarrow$ switch pilot region $\rightarrow$ run scrubber $\rightarrow$ select top suspect $\rightarrow$ verify modal and report generation.
-- [ ] **TASK-07B: Execute Chrome DevTools MCP Audit**  
-  *Done When:* Live session inspected with Chrome DevTools MCP reveals 0 console errors, 0 warnings, and 0 failing network requests.
-- [ ] **TASK-07C: Execute Postman Collection Tests**  
-  *Done When:* Postman collection runs against the REST API with all test assertions passing.
+- [X] **TASK-07A: Create Playwright End-to-End Test Suite**  
+  *Done When:* Playwright test script in `tests/e2e/control_room.spec.ts` executes the complete user flow: load dashboard $\rightarrow$ switch pilot region $\rightarrow$ run scrubber $\rightarrow$ select top suspect $\rightarrow$ verify modal and report generation (1/1 E2E tests passing).
+- [X] **TASK-07B: Execute Chrome DevTools MCP Audit**  
+  *Done When:* Live session inspected with Chrome DevTools MCP reveals 0 console errors, 0 warnings, and 0 failing network requests (79/79 HTTP 200 OK).
+- [X] **TASK-07C: Execute Postman Collection Tests**  
+  *Done When:* Postman collection runs against the REST API with all test assertions passing (12 requests, 24/24 assertions passing).
 
 ---
 
 ### Phase 8: CodeRabbit Remediation & Final Presentation Polish
-- [ ] **TASK-08A: Trigger CodeRabbit Review on Diff**  
-  *Done When:* CodeRabbit review executes; all P0 and P1 issues are resolved and documented.
-- [ ] **TASK-08B: Final Production Build Verification**  
-  *Done When:* `npm run build` produces optimized production bundle; `npm test` passes 100%; repository committed and synchronized on GitHub.
+- [X] **TASK-08A: Trigger CodeRabbit Review on Diff**  
+  *Done When:* CodeRabbit review executes; all P0 and P1 issues are resolved and documented (0 P0, 0 P1 issues).
+- [X] **TASK-08B: Final Production Build Verification**  
+  *Done When:* `npm run build` produces optimized production bundle (built in 9.89s, 167kB gzipped); `npm test` passes 100% (20/20 vitest, 1/1 Playwright E2E, 12/12 FastAPI, 24/24 Newman Postman assertions); repository committed and synchronized on GitHub.

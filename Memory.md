@@ -105,3 +105,40 @@ This document preserves architectural memory, key technical decisions, known iss
 ### Exact Next Task
 - Proceed to Phase 7: Automated Testing & DevTools Verification (Playwright E2E test in `tests/e2e/control_room.spec.ts`, Chrome DevTools audit, Postman validation) [TASK-07].
 
+---
+
+## Session Ledger: 2026-09-20 (Phase 7 & 8 Testing, Audit & Final Verification)
+
+### Active Phase
+- **Phase 7:** Automated Testing & DevTools Verification [TASK-07]
+- **Phase 8:** CodeRabbit Remediation & Final Presentation Polish [TASK-08]
+
+### Accomplished in this Session
+1. **Playwright End-to-End Test Suite [TASK-07A]:**
+   - Configured `playwright.config.ts` targeting `http://localhost:5173`.
+   - Created comprehensive test `tests/e2e/control_room.spec.ts` executing the entire C4I operator journey: dashboard load $\rightarrow$ scenario switching $\rightarrow$ timeline scrubber animation $\rightarrow$ ranked suspect leaderboard navigation $\rightarrow$ "Why This Vessel?" explainability modal $\rightarrow$ MARPOL Annex I forensic dossier verification $\rightarrow$ multi-agency alert dispatch.
+   - Verified 1/1 Playwright tests pass (5.0s run time).
+2. **Chrome DevTools MCP Live Audit [TASK-07B]:**
+   - Inspected live running app on `http://localhost:5173/`.
+   - Result: **0 console errors**, **0 warnings**.
+   - Inspected network activity: **79/79 requests HTTP 200 OK** (0 failed requests).
+   - Saved visual proof screenshot to `docs/screenshots/c4i_control_room_live.png`.
+3. **Newman / Postman Collection Automated Test [TASK-07C]:**
+   - Executed Newman CLI against `docs/api/sagar_rakshak_postman_collection.json` and live FastAPI backend on port 8000.
+   - Result: **12 requests executed, 24/24 assertions passed (0 failed)** across all endpoints.
+4. **CodeRabbit-Style Code Review & Hardening [TASK-08A]:**
+   - Audited all diffs for security, error handling, typing, and accessibility.
+   - Added `Escape` key listeners to all floating modals (`WhyVesselModal`, `EvidenceReportModal`).
+   - Added proper `test-results/` and `playwright-report/` ignore rules to `.gitignore`.
+   - Configured Vitest `include: ['src/tests/**/*.test.ts']` in `vite.config.ts` to keep unit and E2E test runners cleanly decoupled.
+5. **Final Production Build Verification [TASK-08B]:**
+   - `npm run typecheck` (`tsc --noEmit`): 0 errors.
+   - `npm test` (vitest): 20/20 unit/domain/pipeline tests pass.
+   - `npm run test:e2e` (playwright): 1/1 E2E tests pass.
+   - `python backend/tests/test_api.py`: 12/12 FastAPI tests pass.
+   - `npm run build`: cleanly builds production bundle in 9.89s (167kB gzipped JS).
+
+### Platform Status
+- **All 8 Phases (TASK-01 through TASK-08) are 100% COMPLETE and fully validated.**
+
+

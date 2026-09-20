@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { X, ShieldAlert, Eye, FileText, CheckCircle2, AlertTriangle, Crosshair } from 'lucide-react'
 import { useIncident } from '../../state/IncidentContext'
 
@@ -11,6 +11,16 @@ export const WhyVesselModal: React.FC = () => {
     showEvidenceOnMap,
     setIsReportModalOpen
   } = useIncident()
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeWhyVessel()
+    }
+    if (isWhyVesselModalOpen) {
+      window.addEventListener('keydown', handleKeyDown)
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isWhyVesselModalOpen, closeWhyVessel])
 
   if (!isWhyVesselModalOpen) return null
 

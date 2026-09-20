@@ -1,10 +1,20 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { X, Printer, Download, FileText, ShieldCheck } from 'lucide-react'
 import { useIncident } from '../../state/IncidentContext'
 import { ReportService } from '../../services/reportService'
 
 export const EvidenceReportModal: React.FC = () => {
   const { incident, isReportModalOpen, setIsReportModalOpen } = useIncident()
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsReportModalOpen(false)
+    }
+    if (isReportModalOpen) {
+      window.addEventListener('keydown', handleKeyDown)
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isReportModalOpen, setIsReportModalOpen])
 
   if (!isReportModalOpen) return null
 
@@ -111,6 +121,7 @@ export const EvidenceReportModal: React.FC = () => {
 
             <button
               onClick={() => setIsReportModalOpen(false)}
+              aria-label="Close Evidence Dossier"
               style={{
                 background: 'transparent',
                 border: 'none',
