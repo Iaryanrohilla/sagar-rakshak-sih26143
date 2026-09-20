@@ -16,16 +16,16 @@ This document defines the sequential build phases for SAGAR RAKSHAK. Every task 
 ---
 
 ### Phase 2: High-Fidelity UI Screen Mockups via Stitch MCP
-- [ ] **TASK-02A: Initialize Stitch MCP Project**  
-  *Done When:* Stitch project `sagar_rakshak_c4i` is created via `StitchMCP` tool.
-- [ ] **TASK-02B: Generate Tactical Control Room Home Screen Mockup**  
-  *Done When:* Screen `sagar_rakshak_c4i_home` is generated in Stitch showing full-bleed dark map, HUD overlays, active alert ticker, and KPI ribbon.
-- [ ] **TASK-02C: Generate Spill Detail & Lagrangian Drift View Mockup**  
-  *Done When:* Screen `sagar_rakshak_spill_drift` is generated in Stitch displaying slick geometry, SAR/optical spectral overlay, and 48h drift cone.
-- [ ] **TASK-02D: Generate Ranked Suspect Leaderboard Mockup**  
-  *Done When:* Screen `sagar_rakshak_suspect_ranking` is generated in Stitch showcasing leaderboard cards with driving factor pills (CPA, $\Delta t$, AIS gap).
-- [ ] **TASK-02E: Generate MARPOL Annex I Forensic Dossier Mockup**  
-  *Done When:* Screen `sagar_rakshak_marpol_dossier` is generated in Stitch displaying formal printable evidence sheet with cryptographic hash.
+- [X] **TASK-02A: Initialize Stitch MCP Project**  
+  *Done When:* Stitch project `sagar_rakshak_c4i` (`projects/10543003000504841347`) is created via `StitchMCP` tool with design system `Aegis Command HUD`.
+- [X] **TASK-02B: Generate Tactical Control Room Home Screen Mockup**  
+  *Done When:* Screen `c839ac735a314ef584496c4117489602` generated in Stitch showing full-bleed dark map, HUD overlays, active alert ticker, and KPI ribbon.
+- [X] **TASK-02C: Generate Spill Detail & Lagrangian Drift View Mockup**  
+  *Done When:* Screen `24f8465ff4de488690034edf83d6794e` generated in Stitch displaying slick geometry, SAR/optical spectral overlay, and 48h drift cone.
+- [X] **TASK-02D: Generate Ranked Suspect Leaderboard Mockup**  
+  *Done When:* Screen `543905b78c494970aa3ee11832883af4` generated in Stitch showcasing leaderboard cards with driving factor pills (CPA, $\Delta t$, AIS gap).
+- [X] **TASK-02E: Generate MARPOL Annex I Forensic Dossier Mockup**  
+  *Done When:* Screen `b879cd42c4674dff9ca04cad68e40abf` generated in Stitch displaying formal printable evidence sheet with cryptographic hash.
 
 ---
 

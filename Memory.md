@@ -28,8 +28,24 @@ This document preserves architectural memory, key technical decisions, known iss
 - **Dual Encoding:** Mandated that severity and confidence must always display both a color AND an explicit label/percentage (e.g. `CRITICAL (94%)`) to comply with professional maritime operations standards.
 
 ### Known Issues & Technical Debt
-- Need to generate Stitch screen mockups before refactoring components to ensure pixel-close alignment with the C4I design spec.
-- Ensure all simulated data has prominent `[SIMULATED]` badges with tooltips.
+- None in Phase 1 or 2.
 
 ### Exact Next Task
-- Run `npm test` and `npm run build` to confirm baseline integrity [TASK-01B], commit Phase 1 steering documents to GitHub, and proceed to Phase 2 (Stitch screen mockup generation).
+- Proceed to Phase 3: Backend REST API Architecture (FastAPI), PostGIS Database Schema & Postman Collection.
+
+---
+
+## Session Ledger: 2026-09-20 (Phase 2 Stitch Generation)
+
+### Active Phase
+- **Phase 2:** High-Fidelity UI Screen Mockups via Stitch MCP [TASK-02]
+
+### Accomplished in this Session
+1. Initialized Stitch project `sagar_rakshak_c4i` (`projects/10543003000504841347`) with design system **Aegis Command HUD** (`assets/ce46d33731134c549d5fa792e53739a3`).
+2. Generated Screen 1 (`c839ac735a314ef584496c4117489602`): *SAGAR RAKSHAK // C4I Maritime Intelligence Dashboard* — full-bleed tactical map, active alerts ticker, floating KPI ribbon, dual-sensor satellite ingestion panel, and bottom timeline scrubber.
+3. Generated Screen 2 (`24f8465ff4de488690034edf83d6794e`): *SAGAR RAKSHAK // Slick Detail & Lagrangian Drift Analysis* — reverse hindcast origin trajectory, 48h forward forecast cone, coupled HYCOM/ECMWF vectors, Mackay weathering curve, and coastal hazard checklist.
+4. Generated Screen 3 (`543905b78c494970aa3ee11832883af4`): *SAGAR RAKSHAK // Ranked Suspect Leaderboard & AIS Correlation View* — leaderboard cards with score progress bars, top driving factor pills (CPA, $\Delta t$, AIS gap, course deviation), and 5-factor Bayesian forensics modal.
+5. Generated Screen 4 (`b879cd42c4674dff9ca04cad68e40abf`): *SAGAR RAKSHAK // MARPOL Annex I Forensic Evidence Dossier* — court-admissible forensic dossier with SHA-256 cryptographic digest, sensor telemetry, and statutory sanctions.
+
+### Exact Next Task
+- Execute Phase 3: Backend REST API Service & PostGIS Database Contract (`backend/main.py`, models, and Postman collection) [TASK-03].
