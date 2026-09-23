@@ -68,14 +68,29 @@ test.describe('SAGAR RAKSHAK Operations Console Layout & Visual Hierarchy Verifi
     // Ensure tile filter is NOT invert(1)
     expect(tileFilter).not.toContain('invert(1)');
 
-    // 6. Capture full dashboard screenshot for visual inspection
+    // 6. Test Optical & SAR Imagery Mode Switcher (Ensures map never disappears)
+    const opticalBtn = page.locator('button').filter({ hasText: /^OPTICAL$/i }).first();
+    await expect(opticalBtn).toBeVisible();
+    await opticalBtn.click();
+    await page.waitForTimeout(500);
+
+    // Verify map canvas remains visible and attached in optical mode
+    const mapCanvas = page.locator('.map-viewport-container canvas').first();
+    await expect(mapCanvas).toBeVisible();
+
+    // Switch back to SAR
+    const sarBtn = page.locator('button').filter({ hasText: /^SAR$/i }).first();
+    await sarBtn.click();
+    await page.waitForTimeout(400);
+
+    // 7. Capture clean 2D dashboard screenshot for visual inspection
     const artifactScreenshotPath = path.resolve(
       'C:/Users/aryan/.gemini/antigravity-ide/brain/5b801a14-0dec-4cb1-b0af-94ac7b2e3a64',
       'dashboard_overhaul.png'
     );
     await page.screenshot({ path: artifactScreenshotPath, fullPage: false });
 
-    // 7. Verify Workflow Stepper clicks stay responsive
+    // 8. Verify Workflow Stepper clicks stay responsive
     const reverseDriftBtn = page.locator('button').filter({ hasText: /2. REVERSE DRIFT/i }).first();
     await reverseDriftBtn.click();
     await page.waitForTimeout(300);

@@ -142,6 +142,32 @@ This document preserves architectural memory, key technical decisions, known iss
    - `npx playwright test`: 2/2 suites passing (15.3s)
    - `npm run build`: Production bundle clean in 5.79s
 
+---
+
+## Session Ledger: 2026-09-23 (Revert to Clean 2D, Anti-Collision Symbol Labels & Robust Optical Toggle [TASK-12])
+
+### Accomplished in this Session
+1. **Reverted Camera & Perspective to Clean 2D Top-Down View:**
+   - Enforced `pitch: 0` and `bearing: 0` on initialization and across all camera presets.
+   - Removed 3D `fill-extrusion` volumes, reverting the Spill Origin zone and AIS uncertainty circles back to clean flat 2D `fill` and `line` layers.
+2. **Fixed Label Overlaps & Anti-Collision Engine:**
+   - Replaced clustered HTML DOM markers for secondary ships with a Mapbox `symbol` layer with `text-allow-overlap: false` and `icon-allow-overlap: false`, allowing the Mapbox collision engine to automatically declutter background vessels.
+   - For primary critical evidence panels, applied strict vertical offsets (`offset: [0, -35]` for Spill Origin, `offset: [0, -65]` for Forensic Intercept CPA) so they sit cleanly above the trajectory line with zero overlap.
+   - Added `offset: [0, 25]` for the primary suspect vessel badge below its marker dot.
+3. **Crisp Military / NTRO C4I UI Styling:**
+   - Removed excessive neon glowing drop-shadows.
+   - Replaced with solid, highly opaque dark backgrounds (`rgba(9, 15, 26, 0.96)`) and clean 1px solid borders (Coral-Red for Intercept, Teal for SAR).
+4. **Permanent Fix for Optical Map Disappearance ("map udd gaye optical ka"):**
+   - Pre-loaded both `ocean-dark-source` and `satellite-source` simultaneously in the base style.
+   - Instead of tearing down and recreating the map style on `imageryMode` toggles with `setStyle()` (which wiped layers/sources and dropped the map), we now toggle layer visibility instantly with `map.setLayoutProperty`.
+   - Optical, SAR, and AI Fusion modes switch seamlessly with zero flicker and 0ms dropouts.
+5. **Quality Assurance & Verification:**
+   - `npm run typecheck`: 0 errors
+   - `npm test`: 23/23 passing
+   - `npx playwright test`: 2/2 test suites passing (18.3s) including automated optical/SAR toggle verification.
+   - `npm run build`: Production bundle clean in 5.79s
+
+
 
 
 

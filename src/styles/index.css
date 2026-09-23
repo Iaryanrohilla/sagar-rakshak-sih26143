@@ -625,7 +625,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 /* ========================================================================= */
-/* Mapbox GL 3D Isometric View & Floating Digital Glass HUD Panels */
+/* Mapbox GL Clean 2D Tactical View & Military-Grade HUD Evidence Panels */
 /* ========================================================================= */
 .mapboxgl-map, .maplibregl-map {
   font-family: var(--font-mono) !important;
@@ -635,46 +635,38 @@ input[type="range"]::-webkit-slider-thumb:hover {
   outline: none;
 }
 
-.floating-3d-hud {
+.floating-tactical-hud {
   pointer-events: auto;
   user-select: none;
   cursor: pointer;
-  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.85));
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s ease;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.8));
+  transition: transform 0.15s ease;
   z-index: 20;
 }
 
-.floating-3d-hud:hover {
-  transform: translateY(-4px) scale(1.04);
-  filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.95));
+.floating-tactical-hud:hover {
+  transform: translateY(-2px);
 }
 
-.hud-glass-card {
-  background: rgba(6, 12, 22, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-radius: var(--radius-sm);
-  padding: 8px 12px;
+.hud-panel-clean {
+  background: rgba(9, 15, 26, 0.96);
+  border-radius: var(--radius-xs);
+  padding: 6px 10px;
   font-family: var(--font-mono);
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  min-width: 190px;
+  gap: 2px;
+  min-width: 170px;
+  max-width: 240px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
 }
 
-.hud-glass-card.cyan-glow {
-  border: 1px solid rgba(0, 210, 180, 0.7);
-  box-shadow: 0 0 20px rgba(0, 210, 180, 0.35), inset 0 0 12px rgba(0, 210, 180, 0.12);
+.hud-panel-clean.teal-panel {
+  border: 1px solid #00d2b4;
 }
 
-.hud-glass-card.coral-glow {
-  border: 1px solid rgba(244, 63, 94, 0.75);
-  box-shadow: 0 0 22px rgba(244, 63, 94, 0.4), inset 0 0 12px rgba(244, 63, 94, 0.14);
-}
-
-.hud-glass-card.amber-glow {
-  border: 1px solid rgba(245, 158, 11, 0.7);
-  box-shadow: 0 0 18px rgba(245, 158, 11, 0.3), inset 0 0 10px rgba(245, 158, 11, 0.1);
+.hud-panel-clean.coral-panel {
+  border: 1px solid #f43f5e;
 }
 
 .hud-header {
@@ -682,47 +674,47 @@ input[type="range"]::-webkit-slider-thumb:hover {
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  font-size: 0.64rem;
+  font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.04em;
 }
 
 .hud-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   display: inline-block;
+  flex-shrink: 0;
 }
 
 .hud-dot.teal {
-  background: var(--accent-teal);
-  box-shadow: 0 0 8px var(--accent-teal);
+  background: #00d2b4;
 }
 
 .hud-dot.coral {
-  background: var(--accent-coral);
-  box-shadow: 0 0 8px var(--accent-coral);
+  background: #f43f5e;
 }
 
 .hud-title {
   color: var(--text-primary);
   font-weight: 800;
+  font-size: 0.62rem;
 }
 
 .hud-coords {
   font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--accent-teal);
+  font-weight: 800;
+  color: #00d2b4;
   letter-spacing: 0.02em;
 }
 
 .hud-stats {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--text-secondary);
+  color: var(--text-primary);
 }
 
 .hud-sep {
@@ -732,7 +724,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .hud-meta {
   font-size: 0.58rem;
   color: var(--text-muted);
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 .hud-badge {
@@ -742,65 +734,30 @@ input[type="range"]::-webkit-slider-thumb:hover {
   font-weight: 800;
 }
 
+.hud-badge.teal {
+  background: rgba(0, 210, 180, 0.15);
+  color: #00d2b4;
+  border: 1px solid rgba(0, 210, 180, 0.35);
+}
+
 .hud-badge.coral {
-  background: rgba(244, 63, 94, 0.25);
-  color: #ff5252;
-  border: 1px solid rgba(244, 63, 94, 0.5);
+  background: rgba(244, 63, 94, 0.2);
+  color: #f43f5e;
+  border: 1px solid rgba(244, 63, 94, 0.4);
 }
 
-.hud-stem {
-  width: 2px;
-  height: 16px;
-  margin: 0 auto;
-  background: linear-gradient(to bottom, rgba(0, 210, 180, 0.9), transparent);
-}
-
-.hud-stem.coral {
-  background: linear-gradient(to bottom, rgba(244, 63, 94, 0.9), transparent);
-}
-
-/* 3D Vessel Marker & Legal Traffic Badges */
-.vessel-3d-marker {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  pointer-events: auto;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.vessel-3d-marker:hover {
-  transform: scale(1.1);
-}
-
-.vessel-3d-badge {
-  background: rgba(9, 17, 30, 0.94);
-  border: 1.5px solid var(--accent-coral);
-  border-radius: 4px;
+.vessel-panel-clean {
+  background: rgba(9, 15, 26, 0.96);
+  border: 1px solid #f43f5e;
+  border-radius: var(--radius-xs);
   padding: 3px 8px;
   font-family: var(--font-mono);
   font-size: 0.62rem;
   font-weight: 800;
   color: #ffffff;
-  box-shadow: 0 0 14px rgba(244, 63, 94, 0.4);
   display: flex;
   align-items: center;
   gap: 5px;
   white-space: nowrap;
-}
-
-.legal-traffic-badge {
-  background: rgba(5, 10, 18, 0.9);
-  border: 1px solid #38bdf8;
-  border-radius: 3px;
-  padding: 2px 6px;
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
-  font-weight: 700;
-  color: #38bdf8;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }

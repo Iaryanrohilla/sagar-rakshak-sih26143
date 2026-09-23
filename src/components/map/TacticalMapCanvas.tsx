@@ -54,38 +54,59 @@ export const TacticalMapCanvas: React.FC = () => {
   const region = PILOT_REGIONS[incident.regionId]
   const [isLayerHudOpen, setIsLayerHudOpen] = useState<boolean>(false)
 
-  // Construct map style specification (Dark Nautical vs Satellite)
-  const getMapStyle = (mode: ImageryMode): mapboxgl.StyleSpecification => {
-    const isSatellite = mode === 'OPTICAL' || mode === 'FUSION'
-    const tileConfig = isSatellite ? satelliteProvider : demoMapProvider
-
+  // Construct dual-layer base map style (both dark and satellite pre-loaded to prevent map dropouts)
+  const getDualBaseStyle = (): mapboxgl.StyleSpecification => {
     return {
       version: 8,
       sources: {
-        'ocean-raster-source': {
+        'ocean-dark-source': {
           type: 'raster',
-          tiles: [tileConfig.url],
+          tiles: [demoMapProvider.url],
           tileSize: 256,
-          attribution: '&copy; Esri, SAGAR RAKSHAK Maritime Intelligence'
+          attribution: '&copy; Esri Dark Canvas, SAGAR RAKSHAK'
+        },
+        'satellite-source': {
+          type: 'raster',
+          tiles: [satelliteProvider.url],
+          tileSize: 256,
+          attribution: '&copy; Esri World Imagery'
         }
       },
       layers: [
         {
-          id: 'ocean-raster-layer',
+          id: 'ocean-dark-layer',
           type: 'raster',
-          source: 'ocean-raster-source',
+          source: 'ocean-dark-source',
           minzoom: 0,
           maxzoom: 22,
+          layout: {
+            visibility: imageryMode === 'OPTICAL' ? 'none' : 'visible'
+          },
           paint: {
-            'raster-brightness-max': isSatellite ? 0.95 : 0.9,
+            'raster-brightness-max': 0.92,
             'raster-contrast': 0.15
+          }
+        },
+        {
+          id: 'satellite-layer',
+          type: 'raster',
+          source: 'satellite-source',
+          minzoom: 0,
+          maxzoom: 22,
+          layout: {
+            visibility: (imageryMode === 'OPTICAL' || imageryMode === 'FUSION') ? 'visible' : 'none'
+          },
+          paint: {
+            'raster-brightness-max': 0.96,
+            'raster-contrast': 0.2,
+            'raster-opacity': imageryMode === 'FUSION' ? 0.72 : 1.0
           }
         }
       ]
     }
   }
 
-  // 1. Initialize Mapbox GL JS 3D Isometric Map
+  // 1. Initialize Mapbox GL JS in Strict Clean Top-Down 2D Mode (pitch: 0, bearing: 0)
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return
 
@@ -95,11 +116,11 @@ export const TacticalMapCanvas: React.FC = () => {
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: getMapStyle(imageryMode),
+      style: getDualBaseStyle(),
       center: initialLngLat,
       zoom: initialZoom,
-      pitch: 60, // 3D Isometric Pitch Angle
-      bearing: -20, // 3D Isometric Bearing Angle
+      pitch: 0, // Strict flat top-down 2D
+      bearing: 0, // Strict north-aligned 2D
       attributionControl: false
     })
 
@@ -127,18 +148,44 @@ export const TacticalMapCanvas: React.FC = () => {
     }
   }, [])
 
-  // 2. Switch base style when imageryMode toggles
+  // 2. Seamlessly toggle base imagery layers without reloading or dropping the map
   useEffect(() => {
     if (!mapInstanceRef.current) return
     const map = mapInstanceRef.current
+    if (!map.isStyleLoaded()) return
 
-    map.setStyle(getMapStyle(imageryMode))
-    map.once('style.load', () => {
-      renderForensicScene(map)
-    })
+    const isSatellite = imageryMode === 'OPTICAL' || imageryMode === 'FUSION'
+    const isFusion = imageryMode === 'FUSION'
+
+    if (map.getLayer('satellite-layer')) {
+      map.setLayoutProperty('satellite-layer', 'visibility', isSatellite ? 'visible' : 'none')
+      if (isSatellite) {
+        map.setPaintProperty('satellite-layer', 'raster-opacity', isFusion ? 0.72 : 1.0)
+      }
+    }
+
+    if (map.getLayer('ocean-dark-layer')) {
+      map.setLayoutProperty('ocean-dark-layer', 'visibility', (imageryMode === 'SAR' || isFusion) ? 'visible' : 'none')
+    }
+
+    // Adapt slick polygon colors for Optical vs SAR mode
+    if (map.getLayer('slick-polygon-line')) {
+      map.setPaintProperty(
+        'slick-polygon-line',
+        'line-color',
+        imageryMode === 'OPTICAL' ? '#10b981' : '#00d2b4'
+      )
+    }
+    if (map.getLayer('slick-polygon-fill')) {
+      map.setPaintProperty(
+        'slick-polygon-fill',
+        'fill-color',
+        imageryMode === 'OPTICAL' ? '#064e3b' : '#020713'
+      )
+    }
   }, [imageryMode])
 
-  // 3. React to focus targets & presets
+  // 3. React to focus targets & presets in strict 2D
   useEffect(() => {
     if (!mapInstanceRef.current) return
     const map = mapInstanceRef.current
@@ -147,22 +194,22 @@ export const TacticalMapCanvas: React.FC = () => {
       map.flyTo({
         center: [mapFocusTarget[1], mapFocusTarget[0]],
         zoom: Math.max(map.getZoom(), 11),
-        pitch: 60,
-        bearing: -20,
-        duration: 1200
+        pitch: 0,
+        bearing: 0,
+        duration: 1000
       })
     } else if (region) {
       map.flyTo({
         center: [region.center[1], region.center[0]],
         zoom: region.zoom,
-        pitch: 60,
-        bearing: -20,
-        duration: 1000
+        pitch: 0,
+        bearing: 0,
+        duration: 800
       })
     }
   }, [incident.regionId, mapFocusTarget])
 
-  // 4. Main 3D Forensic Reconstruction Layer Renderer
+  // 4. Main Clean 2D Tactical Forensic Layer Renderer
   const renderForensicScene = (map: mapboxgl.Map) => {
     // Clear any existing custom DOM markers
     markersRef.current.forEach((m) => m.remove())
@@ -174,23 +221,27 @@ export const TacticalMapCanvas: React.FC = () => {
 
     // Clean up existing GeoJSON sources/layers if re-rendering
     const layerIds = [
-      'spill-origin-extrusion',
-      'ais-uncertainty-extrusion',
+      'spill-origin-fill',
+      'spill-origin-line',
+      'origin-center-dot',
+      'ais-uncertainty-fill',
+      'ais-uncertainty-line',
       'slick-polygon-fill',
       'slick-polygon-line',
       'hindcast-line-glow',
       'hindcast-line-core',
-      'hindcast-particles',
       'suspect-track-glow',
-      'suspect-track-core'
+      'suspect-track-core',
+      'secondary-ships-dots',
+      'secondary-ships-labels'
     ]
     const sourceIds = [
       'spill-origin-source',
       'ais-uncertainty-source',
       'slick-polygon-source',
       'hindcast-line-source',
-      'hindcast-particles-source',
-      'suspect-track-source'
+      'suspect-track-source',
+      'secondary-ships-source'
     ]
 
     layerIds.forEach((id) => {
@@ -201,9 +252,8 @@ export const TacticalMapCanvas: React.FC = () => {
     })
 
     // =========================================================================
-    // 1. 3D VOLUMETRIC ZONE: SPILL ORIGIN BOUNDING PRISM (fill-extrusion)
+    // 1. CLEAN 2D FLAT SPILL ORIGIN BOUNDING BOX
     // =========================================================================
-    // Construct rectangular 3D volume around the spill origin T₀
     const deltaLat = 0.024
     const deltaLng = 0.038
     const originBoxPolygon: [number, number][] = [
@@ -227,21 +277,42 @@ export const TacticalMapCanvas: React.FC = () => {
     })
 
     map.addLayer({
-      id: 'spill-origin-extrusion',
-      type: 'fill-extrusion',
+      id: 'spill-origin-fill',
+      type: 'fill',
       source: 'spill-origin-source',
       paint: {
-        'fill-extrusion-color': '#00d2b4', // Glowing Cyan
-        'fill-extrusion-height': 500, // 500 meters vertical extrusion
-        'fill-extrusion-base': 0,
-        'fill-extrusion-opacity': 0.82
+        'fill-color': '#00d2b4',
+        'fill-opacity': 0.08
+      }
+    })
+
+    map.addLayer({
+      id: 'spill-origin-line',
+      type: 'line',
+      source: 'spill-origin-source',
+      paint: {
+        'line-color': '#00d2b4',
+        'line-width': 2,
+        'line-dasharray': [4, 4]
+      }
+    })
+
+    // Exact T0 Origin Center Dot
+    map.addLayer({
+      id: 'origin-center-dot',
+      type: 'circle',
+      source: 'spill-origin-source',
+      paint: {
+        'circle-color': '#00d2b4',
+        'circle-radius': 6,
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 2
       }
     })
 
     // =========================================================================
-    // 2. 3D VOLUMETRIC ZONES: AIS UNCERTAINTY CYLINDERS (fill-extrusion)
+    // 2. CLEAN 2D AIS UNCERTAINTY ZONES (Flat circles with dashed borders)
     // =========================================================================
-    // Create 3D cylindrical volumes along the suspect vessel path for AIS uncertainty/blackout
     const blackoutPoints: [number, number][] = [
       [originLngLat[0] - 0.065, originLngLat[1] - 0.045],
       [originLngLat[0] - 0.035, originLngLat[1] - 0.02],
@@ -268,20 +339,29 @@ export const TacticalMapCanvas: React.FC = () => {
 
     if (showDarkSegments) {
       map.addLayer({
-        id: 'ais-uncertainty-extrusion',
-        type: 'fill-extrusion',
+        id: 'ais-uncertainty-fill',
+        type: 'fill',
         source: 'ais-uncertainty-source',
         paint: {
-          'fill-extrusion-color': '#ffd700', // Translucent glowing yellow
-          'fill-extrusion-height': 380, // 380 meters vertical cylinder
-          'fill-extrusion-base': 0,
-          'fill-extrusion-opacity': 0.42
+          'fill-color': '#f59e0b',
+          'fill-opacity': 0.14
+        }
+      })
+
+      map.addLayer({
+        id: 'ais-uncertainty-line',
+        type: 'line',
+        source: 'ais-uncertainty-source',
+        paint: {
+          'line-color': '#f59e0b',
+          'line-width': 1.5,
+          'line-dasharray': [3, 3]
         }
       })
     }
 
     // =========================================================================
-    // 3. GLOWING TRAJECTORIES: SUSPECT VESSEL TRACK (Red Neon Trail)
+    // 3. SUSPECT VESSEL TRACK (Crisp military radar trajectory)
     // =========================================================================
     const vesselTrajectoryPoints: [number, number][] = [
       [originLngLat[0] - 0.12, originLngLat[1] - 0.08],
@@ -306,29 +386,27 @@ export const TacticalMapCanvas: React.FC = () => {
     })
 
     if (showAisTracks) {
-      // Glow underlayer with wide blur
+      // Subtle background contrast line
       map.addLayer({
         id: 'suspect-track-glow',
         type: 'line',
         source: 'suspect-track-source',
         paint: {
           'line-color': '#f43f5e',
-          'line-width': 15, // Wider line width
-          'line-blur': 15, // Neon blur
-          'line-opacity': 0.88
+          'line-width': 5,
+          'line-opacity': 0.35
         }
       })
 
-      // Sharp central core line
+      // Crisp dashed track
       map.addLayer({
         id: 'suspect-track-core',
         type: 'line',
         source: 'suspect-track-source',
         paint: {
-          'line-color': '#ff4d6d',
-          'line-width': 3.5,
-          'line-opacity': 1.0,
-          'line-dasharray': [4, 2]
+          'line-color': '#f43f5e',
+          'line-width': 2.5,
+          'line-dasharray': [4, 3]
         }
       })
     }
@@ -338,7 +416,6 @@ export const TacticalMapCanvas: React.FC = () => {
     // =========================================================================
     if (showSlickPolygon && incident.detection.polygon.length > 2) {
       const slickGeoJsonCoords: [number, number][] = incident.detection.polygon.map(toLngLat)
-      // Close polygon ring
       if (slickGeoJsonCoords.length > 0) {
         slickGeoJsonCoords.push(slickGeoJsonCoords[0])
       }
@@ -360,7 +437,7 @@ export const TacticalMapCanvas: React.FC = () => {
         type: 'fill',
         source: 'slick-polygon-source',
         paint: {
-          'fill-color': '#020713',
+          'fill-color': imageryMode === 'OPTICAL' ? '#064e3b' : '#020713',
           'fill-opacity': 0.88
         }
       })
@@ -370,8 +447,8 @@ export const TacticalMapCanvas: React.FC = () => {
         type: 'line',
         source: 'slick-polygon-source',
         paint: {
-          'line-color': '#00d2b4',
-          'line-width': 2.5
+          'line-color': imageryMode === 'OPTICAL' ? '#10b981' : '#00d2b4',
+          'line-width': 2
         }
       })
     }
@@ -398,9 +475,8 @@ export const TacticalMapCanvas: React.FC = () => {
         source: 'hindcast-line-source',
         paint: {
           'line-color': '#00d2b4',
-          'line-width': 8,
-          'line-blur': 10,
-          'line-opacity': 0.65
+          'line-width': 5,
+          'line-opacity': 0.35
         }
       })
 
@@ -410,70 +486,132 @@ export const TacticalMapCanvas: React.FC = () => {
         source: 'hindcast-line-source',
         paint: {
           'line-color': '#00d2b4',
-          'line-width': 2.5,
+          'line-width': 2,
           'line-dasharray': [3, 2]
         }
       })
     }
 
     // =========================================================================
-    // 5. FLOATING HUD MARKERS (Digital Glass Panels via new mapboxgl.Marker)
+    // 5. SECONDARY SHIPS: MAPBOX SYMBOL LAYER (Collision detection enabled)
+    // =========================================================================
+    // Explicitly avoids DOM label clusters. Mapbox engine automatically hides colliding labels!
+    const legalTrafficFeatures = [
+      {
+        type: 'Feature' as const,
+        properties: { name: 'FV Sagar Kanya (Trawler)' },
+        geometry: { type: 'Point' as const, coordinates: [originLngLat[0] - 0.09, originLngLat[1] + 0.06] as [number, number] }
+      },
+      {
+        type: 'Feature' as const,
+        properties: { name: 'MV Coastal Trader' },
+        geometry: { type: 'Point' as const, coordinates: [originLngLat[0] + 0.075, originLngLat[1] - 0.055] as [number, number] }
+      },
+      {
+        type: 'Feature' as const,
+        properties: { name: 'INS Tarini (Naval Patrol)' },
+        geometry: { type: 'Point' as const, coordinates: [originLngLat[0] + 0.11, originLngLat[1] + 0.025] as [number, number] }
+      }
+    ]
+
+    map.addSource('secondary-ships-source', {
+      type: 'geojson',
+      data: {
+        type: 'FeatureCollection',
+        features: legalTrafficFeatures
+      }
+    })
+
+    // Vessel dots
+    map.addLayer({
+      id: 'secondary-ships-dots',
+      type: 'circle',
+      source: 'secondary-ships-source',
+      paint: {
+        'circle-color': '#38bdf8',
+        'circle-radius': 4.5,
+        'circle-stroke-color': '#050a12',
+        'circle-stroke-width': 1.5
+      }
+    })
+
+    // Anti-collision Symbol Labels
+    map.addLayer({
+      id: 'secondary-ships-labels',
+      type: 'symbol',
+      source: 'secondary-ships-source',
+      layout: {
+        'text-field': ['get', 'name'],
+        'text-size': 10,
+        'text-anchor': 'top',
+        'text-offset': [0, 0.6],
+        'text-allow-overlap': false, // Engine auto-hides colliding labels
+        'text-ignore-placement': false,
+        'text-optional': true
+      },
+      paint: {
+        'text-color': '#94a3b8',
+        'text-halo-color': '#050a12',
+        'text-halo-width': 1.5
+      }
+    })
+
+    // =========================================================================
+    // 6. PRIMARY EVIDENCE PANELS: STRICT OFFSET & CRISP MILITARY STYLING
     // =========================================================================
 
-    // HUD 1: SPILL ORIGIN (T₀) Floating Glass Marker
+    // PANEL 1: SPILL ORIGIN (T₀) Panel (Offset strictly above origin point)
     const originHudEl = document.createElement('div')
-    originHudEl.className = 'floating-3d-hud'
+    originHudEl.className = 'floating-tactical-hud'
     originHudEl.innerHTML = `
-      <div class="hud-glass-card cyan-glow">
+      <div class="hud-panel-clean teal-panel">
         <div class="hud-header">
-          <span style="display:flex;align-items:center;gap:5px;">
+          <span style="display:flex;align-items:center;gap:4px;">
             <span class="hud-dot teal"></span>
             <span class="hud-title">SPILL ORIGIN (T₀)</span>
           </span>
-          <span class="hud-badge" style="background:rgba(0,210,180,0.2);color:#00d2b4;">SAR UNET</span>
+          <span class="hud-badge teal">CONFIRMED</span>
         </div>
         <div class="hud-coords">${originCoords[0].toFixed(3)}° N, ${originCoords[1].toFixed(3)}° E</div>
         <div class="hud-meta">Release: ${incident.characterisation.releaseWindowStart.slice(11, 16)} UTC • 94.6% Confidence</div>
       </div>
-      <div class="hud-stem"></div>
     `
-    const originMarker = new mapboxgl.Marker({ element: originHudEl, anchor: 'bottom' })
+    const originMarker = new mapboxgl.Marker({ element: originHudEl, offset: [0, -35] })
       .setLngLat(originLngLat)
       .addTo(map)
     markersRef.current.push(originMarker)
 
-    // HUD 2: FORENSIC INTERCEPT CPA Floating Glass Marker
+    // PANEL 2: FORENSIC INTERCEPT CPA Panel (Offset cleanly higher to prevent overlap)
     const interceptLngLat: [number, number] = [originLngLat[0] + 0.028, originLngLat[1] + 0.018]
     const interceptHudEl = document.createElement('div')
-    interceptHudEl.className = 'floating-3d-hud'
+    interceptHudEl.className = 'floating-tactical-hud'
     interceptHudEl.innerHTML = `
-      <div class="hud-glass-card coral-glow">
+      <div class="hud-panel-clean coral-panel">
         <div class="hud-header">
-          <span style="display:flex;align-items:center;gap:5px;">
+          <span style="display:flex;align-items:center;gap:4px;">
             <span class="hud-dot coral"></span>
             <span class="hud-title">FORENSIC INTERCEPT</span>
           </span>
           <span class="hud-badge coral">CPA MATCH</span>
         </div>
         <div class="hud-stats">
-          <span>CPA <strong style="color: #ff5252">0.82 NM</strong></span>
+          <span>CPA <strong>0.82 NM</strong></span>
           <span class="hud-sep">|</span>
-          <span>Δt <strong style="color: #ff5252">18 min</strong></span>
+          <span>Δt <strong>18 min</strong></span>
         </div>
         <div class="hud-meta">VESSEL: <strong>${primarySuspect ? primarySuspect.vessel.name : 'MT OCEANUS PRIDE'}</strong></div>
       </div>
-      <div class="hud-stem coral"></div>
     `
-    const interceptMarker = new mapboxgl.Marker({ element: interceptHudEl, anchor: 'bottom' })
+    const interceptMarker = new mapboxgl.Marker({ element: interceptHudEl, offset: [0, -65] })
       .setLngLat(interceptLngLat)
       .addTo(map)
     markersRef.current.push(interceptMarker)
 
-    // HUD 3: 3D Vessel Model Badge at Origin ("MT OCEANUS PRIDE")
+    // PANEL 3: SUSPECT VESSEL BADGE ("MT OCEANUS PRIDE") (Offset below vessel dot)
     const vesselEl = document.createElement('div')
-    vesselEl.className = 'vessel-3d-marker'
+    vesselEl.className = 'floating-tactical-hud'
     vesselEl.innerHTML = `
-      <div class="vessel-3d-badge">
+      <div class="vessel-panel-clean">
         <span>🚢</span>
         <span>${primarySuspect ? primarySuspect.vessel.name : 'MT OCEANUS PRIDE'}</span>
         <span style="background:rgba(244,63,94,0.3);color:#ff5252;padding:0 3px;border-radius:2px;font-size:0.55rem;">
@@ -484,27 +622,10 @@ export const TacticalMapCanvas: React.FC = () => {
     vesselEl.onclick = () => {
       if (primarySuspect) setSelectedSuspect(primarySuspect)
     }
-    const vesselMarker = new mapboxgl.Marker({ element: vesselEl, anchor: 'center' })
+    const vesselMarker = new mapboxgl.Marker({ element: vesselEl, offset: [0, 25] })
       .setLngLat([originLngLat[0] - 0.005, originLngLat[1] - 0.002])
       .addTo(map)
     markersRef.current.push(vesselMarker)
-
-    // HUD 4: Other Legal Sea Traffic (Trawlers & Cargo outside scene)
-    const legalTrafficPoints = [
-      { name: 'FV Sagar Kanya (Trawler)', lngLat: [originLngLat[0] - 0.09, originLngLat[1] + 0.06] as [number, number] },
-      { name: 'MV Coastal Trader', lngLat: [originLngLat[0] + 0.075, originLngLat[1] - 0.055] as [number, number] },
-      { name: 'INS Tarini (Naval Patrol)', lngLat: [originLngLat[0] + 0.11, originLngLat[1] + 0.025] as [number, number] }
-    ]
-
-    legalTrafficPoints.forEach((v) => {
-      const trafficEl = document.createElement('div')
-      trafficEl.className = 'legal-traffic-badge'
-      trafficEl.innerHTML = `<span>⚓</span><span>${v.name}</span>`
-      const marker = new mapboxgl.Marker({ element: trafficEl, anchor: 'center' })
-        .setLngLat(v.lngLat)
-        .addTo(map)
-      markersRef.current.push(marker)
-    })
   }
 
   // 5. Continuous Canvas Particle Flow Overlay (Driven by Metocean Current + Wind Vectors)
@@ -564,7 +685,7 @@ export const TacticalMapCanvas: React.FC = () => {
     }
   }, [incident.metocean, showCurrentVectors])
 
-  // Focus presets handler with 3D camera angles
+  // Focus presets handler with clean 2D top-down camera flight
   const handleFocusPresetClick = (preset: FocusPreset) => {
     triggerFocusPreset(preset)
     if (!mapInstanceRef.current) return
@@ -573,26 +694,26 @@ export const TacticalMapCanvas: React.FC = () => {
 
     switch (preset) {
       case 'CORRIDOR':
-        map.flyTo({ center: [originCoords[1], originCoords[0]], zoom: 9.5, pitch: 60, bearing: -20, duration: 1200 })
+        map.flyTo({ center: [originCoords[1], originCoords[0]], zoom: 9.5, pitch: 0, bearing: 0, duration: 800 })
         break
       case 'SLICK':
-        map.flyTo({ center: [incident.detection.centroid[1], incident.detection.centroid[0]], zoom: 11.2, pitch: 60, bearing: -20, duration: 1200 })
+        map.flyTo({ center: [incident.detection.centroid[1], incident.detection.centroid[0]], zoom: 11.2, pitch: 0, bearing: 0, duration: 800 })
         break
       case 'ORIGIN':
-        map.flyTo({ center: [originCoords[1], originCoords[0]], zoom: 12.2, pitch: 65, bearing: -25, duration: 1200 })
+        map.flyTo({ center: [originCoords[1], originCoords[0]], zoom: 12.0, pitch: 0, bearing: 0, duration: 800 })
         break
       case 'TOP_SUSPECT':
-        map.flyTo({ center: [originCoords[1] + 0.02, originCoords[0] + 0.015], zoom: 11.8, pitch: 60, bearing: -15, duration: 1200 })
+        map.flyTo({ center: [originCoords[1] + 0.02, originCoords[0] + 0.015], zoom: 11.5, pitch: 0, bearing: 0, duration: 800 })
         break
       case 'DARK_SEGMENT':
-        map.flyTo({ center: [originCoords[1] - 0.035, originCoords[0] - 0.02], zoom: 12.0, pitch: 62, bearing: -30, duration: 1200 })
+        map.flyTo({ center: [originCoords[1] - 0.035, originCoords[0] - 0.02], zoom: 11.8, pitch: 0, bearing: 0, duration: 800 })
         break
     }
   }
 
   return (
     <div className="relative w-full h-full overflow-hidden" style={{ background: '#050a12' }}>
-      {/* Mapbox GL Map Container */}
+      {/* Clean 2D Mapbox GL Map Container */}
       <div
         ref={mapContainerRef}
         className="map-viewport-container mapboxgl-map maplibregl-map leaflet-container h-full w-full relative"
@@ -610,7 +731,7 @@ export const TacticalMapCanvas: React.FC = () => {
         }}
       />
 
-      {/* Floating Top-Left Focus Presets Toolbar (Toolbar: z-20) */}
+      {/* Floating Top-Left Focus Presets Toolbar */}
       <div
         className="glass-hud absolute top-4 left-4 z-20"
         style={{
@@ -637,7 +758,7 @@ export const TacticalMapCanvas: React.FC = () => {
           }}
         >
           <Crosshair size={13} />
-          <span>3D FOCUS:</span>
+          <span>FOCUS:</span>
         </span>
 
         {([
@@ -671,7 +792,7 @@ export const TacticalMapCanvas: React.FC = () => {
         })}
       </div>
 
-      {/* Floating Left Layer Manager HUD & Imagery Switcher (Under Focus Presets, z-20) */}
+      {/* Floating Left Layer Manager HUD & Imagery Switcher */}
       <div
         className="absolute z-20"
         style={{
@@ -740,7 +861,7 @@ export const TacticalMapCanvas: React.FC = () => {
         </div>
       </div>
 
-      {/* Floating Layer Toggles Drawer Menu (Dropdown: z-25) */}
+      {/* Floating Layer Toggles Drawer Menu */}
       {isLayerHudOpen && (
         <div
           className="glass-hud absolute z-25"
