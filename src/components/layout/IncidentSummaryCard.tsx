@@ -14,16 +14,21 @@ export const IncidentSummaryCard: React.FC<IncidentSummaryCardProps> = ({ incide
 
   return (
     <div
+      className="incident-summary-card"
       style={{
-        margin: '12px 14px 0 14px',
-        padding: '10px 12px',
+        margin: '10px 12px 0 12px',
+        padding: '8px 12px',
         background: 'var(--bg-surface)',
         border: '1px solid var(--border-medium)',
         borderRadius: 'var(--radius-md)',
         display: 'flex',
         flexDirection: 'column',
         gap: '6px',
-        boxShadow: 'var(--shadow-tactical)'
+        boxShadow: 'var(--shadow-tactical)',
+        minHeight: '94px',
+        maxHeight: '124px',
+        flexShrink: 0,
+        overflow: 'hidden'
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

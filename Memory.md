@@ -49,13 +49,35 @@ This document preserves architectural memory, key technical decisions, known iss
 - **Court Defensibility:** What-If sensitivity testing is treated as a first-class feature calculating mathematical rank retention under metocean noise to prove guilt beyond reasonable doubt under legal cross-examination.
 - **Digital Evidence Seal:** SHA-256 hash computed over incident data package to comply with Section 65B of the Indian Evidence Act.
 
-### Next Tasks to Execute
-- Completed: TacticalMapCanvas animated drift particles along vector fields and layer toggles/presets.
-- Completed: Integrated main routing in `src/App.tsx` (`AUTH` -> `LANDING` -> `CONSOLE`).
-- Completed: Run full automated test suite:
-  - `npm run typecheck`: 0 errors
-  - `npm test`: 5 test files, 23/23 tests passing
-  - `npm run test:e2e`: Playwright E2E full operational journey test passing (6.5s)
-  - `npm run build`: Production bundle built successfully (5.07s)
-- Perform final git commit to lock in Phase 9 delivery.
+---
+
+## Session Ledger: 2026-09-23 (Front-End Layout & Styling Architecture Fix)
+
+### Accomplished in this Session
+1. **Re-architected Dashboard Layout using CSS Grid with Fixed Fractional Tracks:**
+   - App Shell: `grid-template-rows: auto 1fr auto` cleanly separates the top fixed header region (`TacticalHeader`, `KPIRibbon`, `PipelineStepper`), middle operational workspace (`1fr`, `overflow: hidden; min-height: 0`), and 24px operational status footer.
+   - Operations Console Map Layout: Re-architected as a 2-column, 2-row CSS Grid (`grid-template-columns: 1fr 420px; grid-template-rows: 1fr auto`).
+   - Column 1, Row 1: Dedicated Tactical Map Viewport (`.map-viewport-wrapper`, `z-index: 0`).
+   - Column 1, Row 2: Bottom Docked Timeline Scrubber (`.timeline-scrubber-region`), docked in relative flow below the map — zero map obscuration or inspector bleed.
+   - Column 2, Rows 1-2: Right Tactical Inspector (`.inspector-panel`), dedicated 420px column track (collapses into clean 38px vertical rail with expand trigger).
+2. **Removed Absolute Positioning Wrappers & Enforced Containment:**
+   - Replaced floating absolute inspector panel and timeline scrubber with relative grid cells.
+   - Removed duplicate bottom-left floating pill from map canvas to eliminate clutter.
+3. **Standardized Deterministic z-index Hierarchy:**
+   - Base Map Canvas: `z-index: 0` (`--z-base`)
+   - Particle Overlay Canvas: `z-index: 10` (`--z-overlay`)
+   - Floating Toolbars / Controls: `z-index: 20` (`--z-toolbar`)
+   - Dropdown Menus: `z-index: 25` (`--z-popover`)
+   - Bounded Modals / Drawers: `z-index: 30` (`--z-modal`)
+   - Full-Screen Dialogs / Copilot: `z-index: 1000` (`--z-dialog`)
+4. **Enforced Card Min/Max Height Constraints:**
+   - `IncidentSummaryCard`: Fixed `min-height: 94px; max-height: 124px; flex-shrink: 0; overflow: hidden;` prevents layout blowouts.
+   - Inspector scroll body: `flex: 1; min-height: 0; overflow-y: auto;` provides clean bounded scrolling.
+5. **Disk File Verification:**
+   - Confirmed all six root steering files (`Architecture.md`, `Design.md`, `Memory.md`, `Phases.md`, `Prd.md`, `Rules.md`) exist at root disk and are updated.
+6. **Automated Verification:**
+   - `npm run typecheck`: 0 errors
+   - `npm test`: 23/23 tests passing
+   - `npm run test:e2e`: Playwright E2E passing (10.1s)
+
 

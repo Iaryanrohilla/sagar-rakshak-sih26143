@@ -81,3 +81,34 @@
 6. **Multi-Factor Attribution Scoring:** Transparent Bayesian sub-scores determine suspect rankings.
 7. **What-If Robustness Proof:** Sensitivity testing proves the attribution remains stable under metocean shifts.
 8. **Digital Dossier Seal:** An immutable SHA-256 digest is generated for court prosecution.
+
+---
+
+## 4. Frontend Layout Grid Architecture & Layering Hierarchy
+
+The SAGAR RAKSHAK dashboard strictly enforces a deterministic CSS Grid architecture eliminating all absolute-wrapper collisions and UI clipping:
+
+### Structural Grid Specifications
+1. **Application Shell (`.app-shell`):**
+   - Track Definition: `grid-template-rows: auto 1fr auto`
+   - Row 1 (`auto`): Fixed Tactical Header stack (`TacticalHeader`, `KPIRibbon`, `PipelineStepper`).
+   - Row 2 (`1fr`): Operational Workspace (`.main-content`), strictly `overflow: hidden; min-height: 0;`.
+   - Row 3 (`auto`): 24px Operational Status & Metocean Telemetry Footer.
+
+2. **Operations Console Map View (`.console-map-layout`):**
+   - Track Definition: `grid-template-columns: 1fr 420px; grid-template-rows: 1fr auto;`
+   - Column 1, Row 1 (`1fr`): Map Viewport (`.map-viewport-wrapper`), contains base Leaflet map and vector particle canvas.
+   - Column 1, Row 2 (`auto`): Bottom Docked Timeline Scrubber (`.timeline-scrubber-region`), zero absolute overlay onto map.
+   - Column 2, Rows 1 & 2 (`grid-row: 1 / span 2`): Right Tactical Inspector (`.inspector-panel`), dedicated 420px track (collapsible to 38px rail).
+
+3. **Standardized z-index Layering:**
+   - **Base Map Canvas:** `z-index: 0` (`--z-base`)
+   - **Overlay Layers / Particles:** `z-index: 10` (`--z-overlay`)
+   - **Floating Toolbars & Scrubber:** `z-index: 20` (`--z-toolbar`)
+   - **Popovers & Dropdowns:** `z-index: 25` (`--z-popover`)
+   - **Bounded Modals / Drawers:** `z-index: 30` (`--z-modal`)
+   - **Full-Screen Dialogs & Copilot:** `z-index: 1000` (`--z-dialog`)
+
+4. **Bounded Card Constraints:**
+   - Floating summary cards (e.g. `IncidentSummaryCard`) enforce `min-height: 94px; max-height: 124px; flex-shrink: 0; overflow: hidden;` preventing layout blowouts.
+

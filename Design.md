@@ -55,3 +55,19 @@ Per engineering rules, synthetic or pre-computed data modules display an unambig
 [● SIMULATED DATA]
 ```
 Ensures complete transparency with government evaluators and court admissibility standards.
+
+---
+
+## 5. CSS Grid Layout & Non-Overlapping Interface Doctrine
+
+To maintain mission-critical C4I clarity, the interface rejects arbitrary `position: absolute` floating wrappers:
+1. **Grid Container Isolation:** All major UI regions (Top Navigation Stack, Center Operational Workspace, Bottom Timeline Scrubber, Right Tactical Inspector) reside in dedicated grid cells.
+2. **Deterministic z-index Standard:**
+   - Base Map: `z-index: 0` (`--z-base`)
+   - Particle Simulation: `z-index: 10` (`--z-overlay`)
+   - Floating Toolbars / Controls: `z-index: 20` (`--z-toolbar`)
+   - Dropdown Menus: `z-index: 25` (`--z-popover`)
+   - Modals / Drawers: `z-index: 30` (`--z-modal`)
+   - Full Screen Overlays: `z-index: 1000` (`--z-dialog`)
+3. **Card Dimension Constraints:** Floating summary cards and inspector widgets enforce fixed `min-height` and `max-height` with `overflow-y: auto`, preventing map obstruction or scrubber bleed.
+

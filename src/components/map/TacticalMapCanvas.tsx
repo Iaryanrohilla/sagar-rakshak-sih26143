@@ -4,8 +4,6 @@ import { useIncident, ImageryMode, FocusPreset } from '../../state/IncidentConte
 import { PILOT_REGIONS } from '../../data/regions'
 import { createTacticalTileLayer } from '../../services/mapService'
 import {
-  Wind,
-  Waves,
   Layers,
   Crosshair
 } from 'lucide-react'
@@ -487,29 +485,29 @@ export const TacticalMapCanvas: React.FC = () => {
   ])
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-      {/* Map Container */}
-      <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
+    <div className="map-viewport-wrapper" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', zIndex: 0 }}>
+      {/* Map Container (Base Layer: z-0) */}
+      <div ref={mapContainerRef} style={{ width: '100%', height: '100%', zIndex: 0 }} />
 
-      {/* Floating Canvas Overlay for Animated Hydrodynamic Particle Flow */}
+      {/* Floating Canvas Overlay for Animated Hydrodynamic Particle Flow (Overlay: z-10) */}
       <canvas
         ref={particleCanvasRef}
         style={{
           position: 'absolute',
           inset: 0,
           pointerEvents: 'none',
-          zIndex: 400
+          zIndex: 10
         }}
       />
 
-      {/* Floating Top-Left Focus Presets Toolbar */}
+      {/* Floating Top-Left Focus Presets Toolbar (Toolbar: z-20) */}
       <div
         className="glass-hud"
         style={{
           position: 'absolute',
-          top: '14px',
-          left: '14px',
-          zIndex: 850,
+          top: '12px',
+          left: '12px',
+          zIndex: 20,
           borderRadius: 'var(--radius-sm)',
           padding: '4px',
           display: 'flex',
@@ -563,13 +561,13 @@ export const TacticalMapCanvas: React.FC = () => {
         })}
       </div>
 
-      {/* Floating Left Layer Manager HUD & Imagery Switcher (Under Focus Presets) */}
+      {/* Floating Left Layer Manager HUD & Imagery Switcher (Under Focus Presets, z-20) */}
       <div
         style={{
           position: 'absolute',
-          top: '52px',
-          left: '14px',
-          zIndex: 850,
+          top: '48px',
+          left: '12px',
+          zIndex: 20,
           display: 'flex',
           gap: '8px'
         }}
@@ -631,21 +629,23 @@ export const TacticalMapCanvas: React.FC = () => {
         </div>
       </div>
 
-      {/* Floating Layer Toggles Drawer Menu */}
+      {/* Floating Layer Toggles Drawer Menu (Dropdown: z-25) */}
       {isLayerHudOpen && (
         <div
           className="glass-hud"
           style={{
             position: 'absolute',
-            top: '90px',
-            left: '14px',
-            zIndex: 860,
+            top: '86px',
+            left: '12px',
+            zIndex: 25,
             width: '240px',
             padding: '12px 14px',
             borderRadius: 'var(--radius-md)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '8px'
+            gap: '8px',
+            maxHeight: '260px',
+            overflowY: 'auto'
           }}
         >
           <div style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--text-muted)', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '6px' }}>
@@ -678,35 +678,6 @@ export const TacticalMapCanvas: React.FC = () => {
           </label>
         </div>
       )}
-
-      {/* Floating Metocean Telemetry Pill (Bottom-Left) */}
-      <div
-        className="glass-hud"
-        style={{
-          position: 'absolute',
-          bottom: '24px',
-          left: '16px',
-          zIndex: 850,
-          borderRadius: 'var(--radius-sm)',
-          padding: '8px 14px',
-          display: 'flex',
-          gap: '16px',
-          fontSize: '0.7rem',
-          fontFamily: 'var(--font-mono)'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Wind size={13} style={{ color: 'var(--accent-green)' }} />
-          <span>WIND: <strong>{incident.metocean.windSpeedKnots} kts ({incident.metocean.windDirectionDegrees}°)</strong></span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Waves size={13} style={{ color: 'var(--accent-teal)' }} />
-          <span>CURRENT: <strong>{incident.metocean.currentSpeedKnots} kts ({incident.metocean.currentDirectionDegrees}°)</strong></span>
-        </div>
-        <div>
-          <span style={{ color: 'var(--text-muted)' }}>SEA:</span> <strong>{incident.metocean.seaTemperatureCelsius}°C</strong>
-        </div>
-      </div>
     </div>
   )
 }

@@ -70,9 +70,15 @@
   --shadow-tactical: 0 4px 24px rgba(0, 0, 0, 0.65);
   --shadow-hud: 0 8px 32px rgba(2, 6, 12, 0.85);
   --shadow-teal-glow: 0 0 20px rgba(0, 210, 180, 0.35);
-  --shadow-coral-glow: 0 0 20px rgba(244, 63, 94, 0.4);
-  --shadow-amber-glow: 0 0 20px rgba(245, 158, 11, 0.35);
+  /* Standardized Layering Hierarchy */
+  --z-base: 0;       /* Base Map Canvas */
+  --z-overlay: 10;   /* Vector Particle Canvas, Map Overlays */
+  --z-toolbar: 20;   /* Floating Map Toolbars, Scrubber, Inspector Tabs */
+  --z-popover: 25;   /* Tooltips, Dropdowns, Layer Toggles */
+  --z-modal: 30;     /* Bounded Modals, Drawer Controls */
+  --z-dialog: 1000;  /* Full Screen Overlays, Copilot Drawer */
 }
+
 
 * {
   box-sizing: border-box;
@@ -340,62 +346,161 @@ input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.3);
 }
 
-/* Full Bleed App Shell */
+/* Full Bleed App Shell — Re-architected with CSS Grid (fixed fractional regions) */
 .app-shell {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
   width: 100vw;
   height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
   background-color: var(--bg-primary);
   overflow: hidden;
   position: relative;
 }
 
-/* Main Workspace Canvas with Inset Docking */
+/* Fixed Header Region: Navbar + KPI Ribbon + Workflow Stepper */
+.app-header-region {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex-shrink: 0;
+  z-index: var(--z-toolbar);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-medium);
+}
+
+/* KPI Ribbon Grid Track */
+.kpi-ribbon {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(5, 10, 18, 0.95);
+  border-bottom: 1px solid var(--border-subtle);
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+
+/* Main Workspace Canvas (Occupies row 2: 1fr of the App Shell) */
 .main-content {
   position: relative;
-  flex: 1;
   width: 100%;
-  height: calc(100vh - 146px);
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
 }
 
-.map-container {
-  position: absolute;
-  inset: 0;
+/* Operations Console Map Layout — CSS Grid with explicit fractional and sidebar tracks */
+.console-map-layout {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  grid-template-rows: 1fr auto;
   width: 100%;
   height: 100%;
-  z-index: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
 }
 
-/* Floating Translucent Inspector */
+.console-map-layout.inspector-collapsed {
+  grid-template-columns: 1fr 38px;
+}
+
+/* Column 1, Row 1: Tactical Map Viewport */
+.map-viewport-wrapper {
+  grid-column: 1;
+  grid-row: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  z-index: var(--z-base);
+  isolation: isolate;
+}
+
+/* Column 1, Row 2: Bottom Docked Timeline Scrubber Track */
+.timeline-scrubber-region {
+  grid-column: 1;
+  grid-row: 2;
+  position: relative;
+  width: 100%;
+  flex-shrink: 0;
+  z-index: var(--z-toolbar);
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(8, 12, 22, 0.96);
+}
+
+/* Column 2, Row 1 & 2: Right Tactical Inspector Panel */
 .inspector-panel {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  bottom: 86px;
-  width: 440px;
-  max-width: calc(100vw - 28px);
-  z-index: 900;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   background: var(--bg-glass);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-hud);
+  border-left: 1px solid var(--border-medium);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.6);
   overflow: hidden;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  z-index: var(--z-toolbar);
 }
 
+/* Column 2, Row 1 & 2 (When Collapsed): Slim Rail */
+.inspector-collapsed-rail {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  position: relative;
+  width: 38px;
+  height: 100%;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-medium);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  z-index: var(--z-toolbar);
+}
+
+/* Inspector Scrollable Body with Clean Boundaries */
 .inspector-body {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
 }
+
+/* Fixed Min/Max Height Constraints on Floating / Inspector Cards */
+.incident-summary-card {
+  min-height: 94px;
+  max-height: 124px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.panel-card-bounded {
+  min-height: 64px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+/* Standardized z-index utility classes */
+.z-base { z-index: var(--z-base); }
+.z-overlay { z-index: var(--z-overlay); }
+.z-toolbar { z-index: var(--z-toolbar); }
+.z-popover { z-index: var(--z-popover); }
+.z-modal { z-index: var(--z-modal); }
+.z-dialog { z-index: var(--z-dialog); }
+
 
 /* Leaflet & Map Custom Dark Theme Overrides */
 .leaflet-container {

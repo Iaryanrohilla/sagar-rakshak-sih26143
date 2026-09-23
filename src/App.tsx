@@ -38,61 +38,57 @@ const OperationsConsoleContent: React.FC = () => {
 
   return (
     <div className="app-shell">
-      {/* 1. TOP HEADER WITH VIEW SWITCHER & COPILOT */}
-      <TacticalHeader />
+      {/* 1. TOP FIXED HEADER REGION (Navbar + KPI Ribbon + Workflow Stepper) */}
+      <header className="app-header-region">
+        <TacticalHeader />
+        <KPIRibbon />
+        <PipelineStepper />
+      </header>
 
-      {/* 2. KPI / INCIDENT SUMMARY RIBBON */}
-      <KPIRibbon />
-
-      {/* 3. 4-STEP MASTER WORKFLOW STEPPER */}
-      <PipelineStepper />
-
-      {/* 4. MAIN CONTENT WORKSPACE */}
-      <div className="main-content">
+      {/* 2. MAIN CONTENT WORKSPACE (CSS Grid with Explicit Fractional Tracks) */}
+      <main className="main-content">
         {/* Render Active Console View */}
         {activeConsoleView === 'MAP' && (
-          <>
-            {/* Full-Bleed Map Canvas */}
-            <div className="map-container">
+          <div className={`console-map-layout ${isInspectorCollapsed ? 'inspector-collapsed' : ''}`}>
+            {/* Column 1, Row 1: Tactical Map Canvas Viewport */}
+            <div className="map-viewport-wrapper">
               <TacticalMapCanvas />
             </div>
 
-            {/* Bottom Docked Interactive Timeline Scrubber */}
-            <TimelineScrubber />
+            {/* Column 1, Row 2: Bottom Docked Timeline Scrubber */}
+            <div className="timeline-scrubber-region">
+              <TimelineScrubber />
+            </div>
 
-            {/* Floating Show Inspector Button when Collapsed */}
-            {isInspectorCollapsed && (
-              <button
-                onClick={() => setIsInspectorCollapsed(false)}
-                title="Show Inspector Panel"
-                style={{
-                  position: 'absolute',
-                  top: '14px',
-                  right: '14px',
-                  zIndex: 800,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '6px 12px',
-                  background: 'rgba(9, 17, 30, 0.94)',
-                  border: '1px solid var(--accent-teal)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: 'var(--accent-teal)',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.7rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: 'var(--shadow-teal-glow)',
-                  backdropFilter: 'blur(8px)'
-                }}
-              >
-                <ChevronLeft size={14} />
-                <span>SHOW INSPECTOR</span>
-              </button>
-            )}
-
-            {/* Tactical Right Floating Inspector HUD */}
-            {!isInspectorCollapsed && (
+            {/* Column 2, Row 1 & 2: Right Tactical Inspector Panel / Collapsed Rail */}
+            {isInspectorCollapsed ? (
+              <div className="inspector-collapsed-rail">
+                <button
+                  onClick={() => setIsInspectorCollapsed(false)}
+                  title="Show Inspector Panel"
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--accent-teal)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 4px',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.62rem',
+                    fontWeight: 700,
+                    writingMode: 'vertical-rl',
+                    textOrientation: 'mixed',
+                    letterSpacing: '0.08em'
+                  }}
+                >
+                  <ChevronLeft size={16} />
+                  <span>SHOW INSPECTOR</span>
+                </button>
+              </div>
+            ) : (
               <aside className="inspector-panel" aria-label="Incident Inspector">
                 {/* Inspector Tabs */}
                 <div
@@ -206,9 +202,9 @@ const OperationsConsoleContent: React.FC = () => {
                   ) : sideTab === 'AGENCY' ? (
                     <AgencyRolePanel />
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
                       <IncidentSummaryCard incident={incident} activeStage={activeStage} />
-                      <div style={{ flex: 1 }}>
+                      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
                         {activeStage === 'INGESTION' && <SatellitePanel />}
                         {activeStage === 'DETECTION' && <DetectionPanel />}
                         {activeStage === 'CHARACTERISATION' && <CharacterisationPanel />}
@@ -222,21 +218,37 @@ const OperationsConsoleContent: React.FC = () => {
                 </div>
               </aside>
             )}
-          </>
+          </div>
         )}
 
         {/* View 2: Evidence Graph */}
-        {activeConsoleView === 'EVIDENCE_GRAPH' && <EvidenceGraphView />}
+        {activeConsoleView === 'EVIDENCE_GRAPH' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <EvidenceGraphView />
+          </div>
+        )}
 
         {/* View 3: Suspects Leaderboard */}
-        {activeConsoleView === 'SUSPECTS' && <SuspectsView />}
+        {activeConsoleView === 'SUSPECTS' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <SuspectsView />
+          </div>
+        )}
 
         {/* View 4: What-If Sensitivity Testing */}
-        {activeConsoleView === 'WHAT_IF' && <WhatIfView />}
+        {activeConsoleView === 'WHAT_IF' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <WhatIfView />
+          </div>
+        )}
 
         {/* View 5: Formal Legal Dossier Report */}
-        {activeConsoleView === 'DOSSIER' && <DossierView />}
-      </div>
+        {activeConsoleView === 'DOSSIER' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <DossierView />
+          </div>
+        )}
+      </main>
 
       {/* 5. STATUS / TELEMETRY CONTROLS FOOTER */}
       <footer

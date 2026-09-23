@@ -72,21 +72,19 @@ export const TimelineScrubber: React.FC = () => {
 
   return (
     <div
+      className="timeline-scrubber-content"
       style={{
-        position: 'absolute',
-        bottom: '12px',
-        left: '14px',
-        right: '14px',
-        zIndex: 900,
-        background: 'rgba(8, 12, 22, 0.92)',
+        position: 'relative',
+        width: '100%',
+        zIndex: 'var(--z-toolbar)',
+        background: 'rgba(8, 12, 22, 0.96)',
         backdropFilter: 'blur(16px) saturate(140%)',
-        border: '1px solid rgba(0, 240, 255, 0.35)',
-        borderRadius: 'var(--radius-md)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.75), 0 0 15px rgba(0, 240, 255, 0.15)',
-        padding: '10px 16px',
+        borderTop: '1px solid var(--border-medium)',
+        boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.5)',
+        padding: '8px 14px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px'
+        gap: '6px'
       }}
     >
       {/* Top Telemetry Header of Scrubber */}
