@@ -13,8 +13,11 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.1",
+    "@types/mapbox-gl": "^3.4.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.16.0",
+    "mapbox-gl": "^3.31.0",
+    "maplibre-gl": "^6.11.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

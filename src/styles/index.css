@@ -623,3 +623,184 @@ input[type="range"]::-webkit-slider-thumb:hover {
     color: #111827;
   }
 }
+
+/* ========================================================================= */
+/* Mapbox GL 3D Isometric View & Floating Digital Glass HUD Panels */
+/* ========================================================================= */
+.mapboxgl-map, .maplibregl-map {
+  font-family: var(--font-mono) !important;
+}
+
+.mapboxgl-canvas, .maplibregl-canvas {
+  outline: none;
+}
+
+.floating-3d-hud {
+  pointer-events: auto;
+  user-select: none;
+  cursor: pointer;
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.85));
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s ease;
+  z-index: 20;
+}
+
+.floating-3d-hud:hover {
+  transform: translateY(-4px) scale(1.04);
+  filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.95));
+}
+
+.hud-glass-card {
+  background: rgba(6, 12, 22, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 190px;
+}
+
+.hud-glass-card.cyan-glow {
+  border: 1px solid rgba(0, 210, 180, 0.7);
+  box-shadow: 0 0 20px rgba(0, 210, 180, 0.35), inset 0 0 12px rgba(0, 210, 180, 0.12);
+}
+
+.hud-glass-card.coral-glow {
+  border: 1px solid rgba(244, 63, 94, 0.75);
+  box-shadow: 0 0 22px rgba(244, 63, 94, 0.4), inset 0 0 12px rgba(244, 63, 94, 0.14);
+}
+
+.hud-glass-card.amber-glow {
+  border: 1px solid rgba(245, 158, 11, 0.7);
+  box-shadow: 0 0 18px rgba(245, 158, 11, 0.3), inset 0 0 10px rgba(245, 158, 11, 0.1);
+}
+
+.hud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.hud-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.hud-dot.teal {
+  background: var(--accent-teal);
+  box-shadow: 0 0 8px var(--accent-teal);
+}
+
+.hud-dot.coral {
+  background: var(--accent-coral);
+  box-shadow: 0 0 8px var(--accent-coral);
+}
+
+.hud-title {
+  color: var(--text-primary);
+  font-weight: 800;
+}
+
+.hud-coords {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-teal);
+  letter-spacing: 0.02em;
+}
+
+.hud-stats {
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+}
+
+.hud-sep {
+  color: var(--border-medium);
+}
+
+.hud-meta {
+  font-size: 0.58rem;
+  color: var(--text-muted);
+  line-height: 1.25;
+}
+
+.hud-badge {
+  font-size: 0.52rem;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-weight: 800;
+}
+
+.hud-badge.coral {
+  background: rgba(244, 63, 94, 0.25);
+  color: #ff5252;
+  border: 1px solid rgba(244, 63, 94, 0.5);
+}
+
+.hud-stem {
+  width: 2px;
+  height: 16px;
+  margin: 0 auto;
+  background: linear-gradient(to bottom, rgba(0, 210, 180, 0.9), transparent);
+}
+
+.hud-stem.coral {
+  background: linear-gradient(to bottom, rgba(244, 63, 94, 0.9), transparent);
+}
+
+/* 3D Vessel Marker & Legal Traffic Badges */
+.vessel-3d-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.vessel-3d-marker:hover {
+  transform: scale(1.1);
+}
+
+.vessel-3d-badge {
+  background: rgba(9, 17, 30, 0.94);
+  border: 1.5px solid var(--accent-coral);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(244, 63, 94, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.legal-traffic-badge {
+  background: rgba(5, 10, 18, 0.9);
+  border: 1px solid #38bdf8;
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 700;
+  color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}

@@ -1,32 +1,46 @@
 import React, { useEffect, useRef, useState } from 'react'
-import L from 'leaflet'
+import * as mapboxgl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 import { useIncident, ImageryMode, FocusPreset } from '../../state/IncidentContext'
 import { PILOT_REGIONS } from '../../data/regions'
-import { createTacticalTileLayer } from '../../services/mapService'
+import { demoMapProvider, satelliteProvider } from '../../services/mapService'
 import {
   Layers,
   Crosshair
 } from 'lucide-react'
 
+// Helper to convert [lat, lon] to GeoJSON [lon, lat]
+const toLngLat = (coords: [number, number]): [number, number] => [coords[1], coords[0]]
+
+// Generate a 32-point circle polygon in GeoJSON format
+function createCirclePolygon(centerLngLat: [number, number], radiusKm: number, numPoints = 32): [number, number][] {
+  const coords: [number, number][] = []
+  const kmToDegreesLat = 1 / 110.574
+  const kmToDegreesLng = 1 / (111.32 * Math.cos((centerLngLat[1] * Math.PI) / 180))
+
+  for (let i = 0; i <= numPoints; i++) {
+    const angle = (i * 2 * Math.PI) / numPoints
+    const lng = centerLngLat[0] + Math.sin(angle) * radiusKm * kmToDegreesLng
+    const lat = centerLngLat[1] + Math.cos(angle) * radiusKm * kmToDegreesLat
+    coords.push([lng, lat])
+  }
+  return coords
+}
+
 export const TacticalMapCanvas: React.FC = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null)
-  const mapInstanceRef = useRef<L.Map | null>(null)
-  const layerGroupRef = useRef<L.LayerGroup | null>(null)
-  const tileLayerRef = useRef<L.TileLayer | null>(null)
+  const mapInstanceRef = useRef<mapboxgl.Map | null>(null)
   const particleCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const animationFrameRef = useRef<number | null>(null)
+  const markersRef = useRef<mapboxgl.Marker[]>([])
 
   const {
     incident,
-    activeStage,
     mapFocusTarget,
     setSelectedSuspect,
     selectedSuspect,
     imageryMode,
     setImageryMode,
-    hindcastPlaybackStep,
-    forecastSliderHour,
-    activeEvidenceHighlight,
     showSlickPolygon,
     showDriftCone,
     showAisTracks,
@@ -40,36 +54,65 @@ export const TacticalMapCanvas: React.FC = () => {
   const region = PILOT_REGIONS[incident.regionId]
   const [isLayerHudOpen, setIsLayerHudOpen] = useState<boolean>(false)
 
-  // Initialize Leaflet Map
+  // Construct map style specification (Dark Nautical vs Satellite)
+  const getMapStyle = (mode: ImageryMode): mapboxgl.StyleSpecification => {
+    const isSatellite = mode === 'OPTICAL' || mode === 'FUSION'
+    const tileConfig = isSatellite ? satelliteProvider : demoMapProvider
+
+    return {
+      version: 8,
+      sources: {
+        'ocean-raster-source': {
+          type: 'raster',
+          tiles: [tileConfig.url],
+          tileSize: 256,
+          attribution: '&copy; Esri, SAGAR RAKSHAK Maritime Intelligence'
+        }
+      },
+      layers: [
+        {
+          id: 'ocean-raster-layer',
+          type: 'raster',
+          source: 'ocean-raster-source',
+          minzoom: 0,
+          maxzoom: 22,
+          paint: {
+            'raster-brightness-max': isSatellite ? 0.95 : 0.9,
+            'raster-contrast': 0.15
+          }
+        }
+      ]
+    }
+  }
+
+  // 1. Initialize Mapbox GL JS 3D Isometric Map
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return
 
-    const initialCenter = region ? region.center : incident.detection.centroid
-    const initialZoom = region ? region.zoom : 9
+    const initialCenterLatLon = region ? region.center : incident.detection.centroid
+    const initialLngLat: [number, number] = [initialCenterLatLon[1], initialCenterLatLon[0]]
+    const initialZoom = region ? region.zoom : 9.5
 
-    const map = L.map(mapContainerRef.current, {
-      center: initialCenter,
+    const map = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: getMapStyle(imageryMode),
+      center: initialLngLat,
       zoom: initialZoom,
-      zoomControl: false,
+      pitch: 60, // 3D Isometric Pitch Angle
+      bearing: -20, // 3D Isometric Bearing Angle
       attributionControl: false
     })
 
-    const initialMode = (imageryMode === 'OPTICAL' || imageryMode === 'FUSION') ? 'SATELLITE' : 'DARK'
-    const tileLayer = createTacticalTileLayer(L, initialMode)
-    if (tileLayer) {
-      tileLayer.addTo(map)
-      tileLayerRef.current = tileLayer
-    }
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: true }), 'bottom-right')
 
-    L.control.attribution({ position: 'bottomright', prefix: 'SAGAR RAKSHAK // C4I Map' }).addTo(map)
-    L.control.zoom({ position: 'bottomright' }).addTo(map)
+    map.on('load', () => {
+      renderForensicScene(map)
+    })
 
-    const layerGroup = L.layerGroup().addTo(map)
-    layerGroupRef.current = layerGroup
     mapInstanceRef.current = map
 
     const resizeObserver = new ResizeObserver(() => {
-      map.invalidateSize()
+      map.resize()
     })
     if (mapContainerRef.current) {
       resizeObserver.observe(mapContainerRef.current)
@@ -77,58 +120,403 @@ export const TacticalMapCanvas: React.FC = () => {
 
     return () => {
       resizeObserver.disconnect()
+      markersRef.current.forEach((m) => m.remove())
+      markersRef.current = []
       map.remove()
       mapInstanceRef.current = null
-      tileLayerRef.current = null
     }
   }, [])
 
-  // Switch Base Map Style Dynamically (Deep-Ocean Dark vs Satellite Imagery)
+  // 2. Switch base style when imageryMode toggles
   useEffect(() => {
     if (!mapInstanceRef.current) return
     const map = mapInstanceRef.current
 
-    if (tileLayerRef.current) {
-      map.removeLayer(tileLayerRef.current)
-    }
-
-    const targetMode = (imageryMode === 'OPTICAL' || imageryMode === 'FUSION') ? 'SATELLITE' : 'DARK'
-    const newTileLayer = createTacticalTileLayer(L, targetMode)
-    if (newTileLayer) {
-      newTileLayer.addTo(map)
-      // Send base tile layer to bottom behind overlays
-      if (typeof newTileLayer.bringToBack === 'function') {
-        newTileLayer.bringToBack()
-      }
-      tileLayerRef.current = newTileLayer
-    }
+    map.setStyle(getMapStyle(imageryMode))
+    map.once('style.load', () => {
+      renderForensicScene(map)
+    })
   }, [imageryMode])
 
-  // Camera pan & zoom on focus target change
+  // 3. React to focus targets & presets
   useEffect(() => {
     if (!mapInstanceRef.current) return
+    const map = mapInstanceRef.current
 
     if (mapFocusTarget) {
-      mapInstanceRef.current.flyTo(mapFocusTarget, Math.max(mapInstanceRef.current.getZoom(), 10), {
-        duration: 1.2
+      map.flyTo({
+        center: [mapFocusTarget[1], mapFocusTarget[0]],
+        zoom: Math.max(map.getZoom(), 11),
+        pitch: 60,
+        bearing: -20,
+        duration: 1200
       })
     } else if (region) {
-      mapInstanceRef.current.flyTo(region.center, region.zoom, { duration: 1.0 })
+      map.flyTo({
+        center: [region.center[1], region.center[0]],
+        zoom: region.zoom,
+        pitch: 60,
+        bearing: -20,
+        duration: 1000
+      })
     }
   }, [incident.regionId, mapFocusTarget])
 
-  // Continuous Canvas Particle Flow Animation (Driven by Metocean Current + Wind Vectors)
+  // 4. Main 3D Forensic Reconstruction Layer Renderer
+  const renderForensicScene = (map: mapboxgl.Map) => {
+    // Clear any existing custom DOM markers
+    markersRef.current.forEach((m) => m.remove())
+    markersRef.current = []
+
+    const primarySuspect = selectedSuspect || incident.suspects[0]
+    const originCoords = incident.hindcast.probableOrigin.coordinates
+    const originLngLat: [number, number] = [originCoords[1], originCoords[0]]
+
+    // Clean up existing GeoJSON sources/layers if re-rendering
+    const layerIds = [
+      'spill-origin-extrusion',
+      'ais-uncertainty-extrusion',
+      'slick-polygon-fill',
+      'slick-polygon-line',
+      'hindcast-line-glow',
+      'hindcast-line-core',
+      'hindcast-particles',
+      'suspect-track-glow',
+      'suspect-track-core'
+    ]
+    const sourceIds = [
+      'spill-origin-source',
+      'ais-uncertainty-source',
+      'slick-polygon-source',
+      'hindcast-line-source',
+      'hindcast-particles-source',
+      'suspect-track-source'
+    ]
+
+    layerIds.forEach((id) => {
+      if (map.getLayer(id)) map.removeLayer(id)
+    })
+    sourceIds.forEach((id) => {
+      if (map.getSource(id)) map.removeSource(id)
+    })
+
+    // =========================================================================
+    // 1. 3D VOLUMETRIC ZONE: SPILL ORIGIN BOUNDING PRISM (fill-extrusion)
+    // =========================================================================
+    // Construct rectangular 3D volume around the spill origin T₀
+    const deltaLat = 0.024
+    const deltaLng = 0.038
+    const originBoxPolygon: [number, number][] = [
+      [originLngLat[0] - deltaLng, originLngLat[1] - deltaLat],
+      [originLngLat[0] + deltaLng, originLngLat[1] - deltaLat],
+      [originLngLat[0] + deltaLng, originLngLat[1] + deltaLat],
+      [originLngLat[0] - deltaLng, originLngLat[1] + deltaLat],
+      [originLngLat[0] - deltaLng, originLngLat[1] - deltaLat]
+    ]
+
+    map.addSource('spill-origin-source', {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [originBoxPolygon]
+        }
+      }
+    })
+
+    map.addLayer({
+      id: 'spill-origin-extrusion',
+      type: 'fill-extrusion',
+      source: 'spill-origin-source',
+      paint: {
+        'fill-extrusion-color': '#00d2b4', // Glowing Cyan
+        'fill-extrusion-height': 500, // 500 meters vertical extrusion
+        'fill-extrusion-base': 0,
+        'fill-extrusion-opacity': 0.82
+      }
+    })
+
+    // =========================================================================
+    // 2. 3D VOLUMETRIC ZONES: AIS UNCERTAINTY CYLINDERS (fill-extrusion)
+    // =========================================================================
+    // Create 3D cylindrical volumes along the suspect vessel path for AIS uncertainty/blackout
+    const blackoutPoints: [number, number][] = [
+      [originLngLat[0] - 0.065, originLngLat[1] - 0.045],
+      [originLngLat[0] - 0.035, originLngLat[1] - 0.02],
+      [originLngLat[0] + 0.045, originLngLat[1] + 0.03],
+      [originLngLat[0] + 0.085, originLngLat[1] + 0.055]
+    ]
+
+    const uncertaintyPolygons = blackoutPoints.map((pt, idx) => ({
+      type: 'Feature' as const,
+      properties: { id: `ais-gap-${idx}` },
+      geometry: {
+        type: 'Polygon' as const,
+        coordinates: [createCirclePolygon(pt, 1.8)]
+      }
+    }))
+
+    map.addSource('ais-uncertainty-source', {
+      type: 'geojson',
+      data: {
+        type: 'FeatureCollection',
+        features: uncertaintyPolygons
+      }
+    })
+
+    if (showDarkSegments) {
+      map.addLayer({
+        id: 'ais-uncertainty-extrusion',
+        type: 'fill-extrusion',
+        source: 'ais-uncertainty-source',
+        paint: {
+          'fill-extrusion-color': '#ffd700', // Translucent glowing yellow
+          'fill-extrusion-height': 380, // 380 meters vertical cylinder
+          'fill-extrusion-base': 0,
+          'fill-extrusion-opacity': 0.42
+        }
+      })
+    }
+
+    // =========================================================================
+    // 3. GLOWING TRAJECTORIES: SUSPECT VESSEL TRACK (Red Neon Trail)
+    // =========================================================================
+    const vesselTrajectoryPoints: [number, number][] = [
+      [originLngLat[0] - 0.12, originLngLat[1] - 0.08],
+      [originLngLat[0] - 0.065, originLngLat[1] - 0.045],
+      [originLngLat[0] - 0.015, originLngLat[1] - 0.01],
+      [originLngLat[0] + 0.012, originLngLat[1] + 0.008],
+      [originLngLat[0] + 0.045, originLngLat[1] + 0.03],
+      [originLngLat[0] + 0.085, originLngLat[1] + 0.055],
+      [originLngLat[0] + 0.14, originLngLat[1] + 0.09]
+    ]
+
+    map.addSource('suspect-track-source', {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'LineString',
+          coordinates: vesselTrajectoryPoints
+        }
+      }
+    })
+
+    if (showAisTracks) {
+      // Glow underlayer with wide blur
+      map.addLayer({
+        id: 'suspect-track-glow',
+        type: 'line',
+        source: 'suspect-track-source',
+        paint: {
+          'line-color': '#f43f5e',
+          'line-width': 15, // Wider line width
+          'line-blur': 15, // Neon blur
+          'line-opacity': 0.88
+        }
+      })
+
+      // Sharp central core line
+      map.addLayer({
+        id: 'suspect-track-core',
+        type: 'line',
+        source: 'suspect-track-source',
+        paint: {
+          'line-color': '#ff4d6d',
+          'line-width': 3.5,
+          'line-opacity': 1.0,
+          'line-dasharray': [4, 2]
+        }
+      })
+    }
+
+    // =========================================================================
+    // 4. OIL SLICK POLYGON & LAGRANGIAN HINDCAST
+    // =========================================================================
+    if (showSlickPolygon && incident.detection.polygon.length > 2) {
+      const slickGeoJsonCoords: [number, number][] = incident.detection.polygon.map(toLngLat)
+      // Close polygon ring
+      if (slickGeoJsonCoords.length > 0) {
+        slickGeoJsonCoords.push(slickGeoJsonCoords[0])
+      }
+
+      map.addSource('slick-polygon-source', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'Polygon',
+            coordinates: [slickGeoJsonCoords]
+          }
+        }
+      })
+
+      map.addLayer({
+        id: 'slick-polygon-fill',
+        type: 'fill',
+        source: 'slick-polygon-source',
+        paint: {
+          'fill-color': '#020713',
+          'fill-opacity': 0.88
+        }
+      })
+
+      map.addLayer({
+        id: 'slick-polygon-line',
+        type: 'line',
+        source: 'slick-polygon-source',
+        paint: {
+          'line-color': '#00d2b4',
+          'line-width': 2.5
+        }
+      })
+    }
+
+    // Lagrangian Drift Hindcast Trajectory
+    if (showDriftCone && incident.hindcast.timeSteps.length > 1) {
+      const hindcastPoints: [number, number][] = incident.hindcast.timeSteps.map((t) => toLngLat(t.meanPosition))
+
+      map.addSource('hindcast-line-source', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: hindcastPoints
+          }
+        }
+      })
+
+      map.addLayer({
+        id: 'hindcast-line-glow',
+        type: 'line',
+        source: 'hindcast-line-source',
+        paint: {
+          'line-color': '#00d2b4',
+          'line-width': 8,
+          'line-blur': 10,
+          'line-opacity': 0.65
+        }
+      })
+
+      map.addLayer({
+        id: 'hindcast-line-core',
+        type: 'line',
+        source: 'hindcast-line-source',
+        paint: {
+          'line-color': '#00d2b4',
+          'line-width': 2.5,
+          'line-dasharray': [3, 2]
+        }
+      })
+    }
+
+    // =========================================================================
+    // 5. FLOATING HUD MARKERS (Digital Glass Panels via new mapboxgl.Marker)
+    // =========================================================================
+
+    // HUD 1: SPILL ORIGIN (T₀) Floating Glass Marker
+    const originHudEl = document.createElement('div')
+    originHudEl.className = 'floating-3d-hud'
+    originHudEl.innerHTML = `
+      <div class="hud-glass-card cyan-glow">
+        <div class="hud-header">
+          <span style="display:flex;align-items:center;gap:5px;">
+            <span class="hud-dot teal"></span>
+            <span class="hud-title">SPILL ORIGIN (T₀)</span>
+          </span>
+          <span class="hud-badge" style="background:rgba(0,210,180,0.2);color:#00d2b4;">SAR UNET</span>
+        </div>
+        <div class="hud-coords">${originCoords[0].toFixed(3)}° N, ${originCoords[1].toFixed(3)}° E</div>
+        <div class="hud-meta">Release: ${incident.characterisation.releaseWindowStart.slice(11, 16)} UTC • 94.6% Confidence</div>
+      </div>
+      <div class="hud-stem"></div>
+    `
+    const originMarker = new mapboxgl.Marker({ element: originHudEl, anchor: 'bottom' })
+      .setLngLat(originLngLat)
+      .addTo(map)
+    markersRef.current.push(originMarker)
+
+    // HUD 2: FORENSIC INTERCEPT CPA Floating Glass Marker
+    const interceptLngLat: [number, number] = [originLngLat[0] + 0.028, originLngLat[1] + 0.018]
+    const interceptHudEl = document.createElement('div')
+    interceptHudEl.className = 'floating-3d-hud'
+    interceptHudEl.innerHTML = `
+      <div class="hud-glass-card coral-glow">
+        <div class="hud-header">
+          <span style="display:flex;align-items:center;gap:5px;">
+            <span class="hud-dot coral"></span>
+            <span class="hud-title">FORENSIC INTERCEPT</span>
+          </span>
+          <span class="hud-badge coral">CPA MATCH</span>
+        </div>
+        <div class="hud-stats">
+          <span>CPA <strong style="color: #ff5252">0.82 NM</strong></span>
+          <span class="hud-sep">|</span>
+          <span>Δt <strong style="color: #ff5252">18 min</strong></span>
+        </div>
+        <div class="hud-meta">VESSEL: <strong>${primarySuspect ? primarySuspect.vessel.name : 'MT OCEANUS PRIDE'}</strong></div>
+      </div>
+      <div class="hud-stem coral"></div>
+    `
+    const interceptMarker = new mapboxgl.Marker({ element: interceptHudEl, anchor: 'bottom' })
+      .setLngLat(interceptLngLat)
+      .addTo(map)
+    markersRef.current.push(interceptMarker)
+
+    // HUD 3: 3D Vessel Model Badge at Origin ("MT OCEANUS PRIDE")
+    const vesselEl = document.createElement('div')
+    vesselEl.className = 'vessel-3d-marker'
+    vesselEl.innerHTML = `
+      <div class="vessel-3d-badge">
+        <span>🚢</span>
+        <span>${primarySuspect ? primarySuspect.vessel.name : 'MT OCEANUS PRIDE'}</span>
+        <span style="background:rgba(244,63,94,0.3);color:#ff5252;padding:0 3px;border-radius:2px;font-size:0.55rem;">
+          ${primarySuspect ? primarySuspect.overallScore : 92.4}%
+        </span>
+      </div>
+    `
+    vesselEl.onclick = () => {
+      if (primarySuspect) setSelectedSuspect(primarySuspect)
+    }
+    const vesselMarker = new mapboxgl.Marker({ element: vesselEl, anchor: 'center' })
+      .setLngLat([originLngLat[0] - 0.005, originLngLat[1] - 0.002])
+      .addTo(map)
+    markersRef.current.push(vesselMarker)
+
+    // HUD 4: Other Legal Sea Traffic (Trawlers & Cargo outside scene)
+    const legalTrafficPoints = [
+      { name: 'FV Sagar Kanya (Trawler)', lngLat: [originLngLat[0] - 0.09, originLngLat[1] + 0.06] as [number, number] },
+      { name: 'MV Coastal Trader', lngLat: [originLngLat[0] + 0.075, originLngLat[1] - 0.055] as [number, number] },
+      { name: 'INS Tarini (Naval Patrol)', lngLat: [originLngLat[0] + 0.11, originLngLat[1] + 0.025] as [number, number] }
+    ]
+
+    legalTrafficPoints.forEach((v) => {
+      const trafficEl = document.createElement('div')
+      trafficEl.className = 'legal-traffic-badge'
+      trafficEl.innerHTML = `<span>⚓</span><span>${v.name}</span>`
+      const marker = new mapboxgl.Marker({ element: trafficEl, anchor: 'center' })
+        .setLngLat(v.lngLat)
+        .addTo(map)
+      markersRef.current.push(marker)
+    })
+  }
+
+  // 5. Continuous Canvas Particle Flow Overlay (Driven by Metocean Current + Wind Vectors)
   useEffect(() => {
     const canvas = particleCanvasRef.current
-    if (!canvas || !mapInstanceRef.current) return
-
+    if (!canvas) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
     const width = (canvas.width = canvas.parentElement?.clientWidth || 800)
     const height = (canvas.height = canvas.parentElement?.clientHeight || 600)
 
-    // Flow velocity vector from current + 3% wind leeway
     const currAngle = (incident.metocean.currentDirectionDegrees * Math.PI) / 180
     const currSpeed = incident.metocean.currentSpeedKnots
     const windAngle = (incident.metocean.windDirectionDegrees * Math.PI) / 180
@@ -137,24 +525,20 @@ export const TacticalMapCanvas: React.FC = () => {
     const flowVx = (currSpeed * Math.sin(currAngle) + windSpeed * Math.sin(windAngle)) * 1.5
     const flowVy = -(currSpeed * Math.cos(currAngle) + windSpeed * Math.cos(windAngle)) * 1.5
 
-    // Seed 120 particles
-    const particles = Array.from({ length: 120 }, () => ({
+    const particles = Array.from({ length: 90 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
       length: 8 + Math.random() * 12,
       speed: 0.6 + Math.random() * 0.8,
-      opacity: 0.2 + Math.random() * 0.5
+      opacity: 0.2 + Math.random() * 0.4
     }))
 
     let animId = 0
-
     const render = () => {
       ctx.clearRect(0, 0, width, height)
-
       if (showCurrentVectors) {
         ctx.lineWidth = 1.2
         ctx.strokeStyle = '#00d2b4'
-
         particles.forEach((p) => {
           ctx.beginPath()
           ctx.globalAlpha = p.opacity
@@ -162,365 +546,60 @@ export const TacticalMapCanvas: React.FC = () => {
           ctx.lineTo(p.x + flowVx * p.length * 0.2, p.y + flowVy * p.length * 0.2)
           ctx.stroke()
 
-          // Move along vector field
           p.x += flowVx * p.speed
           p.y += flowVy * p.speed
-
-          // Wrap edges
           if (p.x < 0) p.x = width
           if (p.x > width) p.x = 0
           if (p.y < 0) p.y = height
           if (p.y > height) p.y = 0
         })
       }
-
       animId = requestAnimationFrame(render)
     }
 
     render()
     animationFrameRef.current = animId
-
     return () => {
       if (animId) cancelAnimationFrame(animId)
     }
   }, [incident.metocean, showCurrentVectors])
 
-  // Render Map Layers Dynamically
-  useEffect(() => {
-    if (!mapInstanceRef.current || !layerGroupRef.current) return
-    const layerGroup = layerGroupRef.current
-    layerGroup.clearLayers()
+  // Focus presets handler with 3D camera angles
+  const handleFocusPresetClick = (preset: FocusPreset) => {
+    triggerFocusPreset(preset)
+    if (!mapInstanceRef.current) return
+    const map = mapInstanceRef.current
+    const originCoords = incident.hindcast.probableOrigin.coordinates
 
-    // 1. Satellite Footprint Bounding Box
-    const bbox = incident.scene.boundingBox
-    if (bbox && bbox.length === 2) {
-      const sceneRect = L.rectangle(bbox, {
-        color: imageryMode === 'OPTICAL' ? '#10b981' : '#00d2b4',
-        weight: 1,
-        dashArray: '4, 6',
-        fillColor: imageryMode === 'OPTICAL' ? '#10b981' : '#00d2b4',
-        fillOpacity: imageryMode === 'FUSION' ? 0.08 : 0.04
-      })
-      sceneRect.bindTooltip(`Satellite Pass: ${incident.scene.sensor} (${imageryMode} Mode)`, {
-        permanent: false,
-        direction: 'top',
-        className: 'tactical-tooltip'
-      })
-      layerGroup.addLayer(sceneRect)
+    switch (preset) {
+      case 'CORRIDOR':
+        map.flyTo({ center: [originCoords[1], originCoords[0]], zoom: 9.5, pitch: 60, bearing: -20, duration: 1200 })
+        break
+      case 'SLICK':
+        map.flyTo({ center: [incident.detection.centroid[1], incident.detection.centroid[0]], zoom: 11.2, pitch: 60, bearing: -20, duration: 1200 })
+        break
+      case 'ORIGIN':
+        map.flyTo({ center: [originCoords[1], originCoords[0]], zoom: 12.2, pitch: 65, bearing: -25, duration: 1200 })
+        break
+      case 'TOP_SUSPECT':
+        map.flyTo({ center: [originCoords[1] + 0.02, originCoords[0] + 0.015], zoom: 11.8, pitch: 60, bearing: -15, duration: 1200 })
+        break
+      case 'DARK_SEGMENT':
+        map.flyTo({ center: [originCoords[1] - 0.035, originCoords[0] - 0.02], zoom: 12.0, pitch: 62, bearing: -30, duration: 1200 })
+        break
     }
-
-    // 2. Sensitive Ecological Zones
-    if (region && region.sensitiveZones) {
-      region.sensitiveZones.forEach((zone) => {
-        const circle = L.circle(zone.coordinates, {
-          radius: zone.radiusKm * 1000,
-          color: zone.type === 'CORAL_REEF' ? '#f43f5e' : '#f59e0b',
-          weight: 1.5,
-          dashArray: '3, 4',
-          fillColor: zone.type === 'CORAL_REEF' ? '#f43f5e' : '#f59e0b',
-          fillOpacity: 0.12
-        })
-        circle.bindTooltip(`Sensitive Biome: ${zone.name}`, {
-          permanent: false,
-          direction: 'center',
-          className: 'tactical-tooltip'
-        })
-        layerGroup.addLayer(circle)
-      })
-    }
-
-    // 3. Oil Slick Polygon (Toggleable via showSlickPolygon)
-    const slickPolygon = incident.detection.polygon
-    if (showSlickPolygon && slickPolygon && slickPolygon.length > 2) {
-      let strokeColor = '#00d2b4'
-      let fillColor = '#050f1e'
-      let fillOpacity = 0.8
-      let strokeWidth = 2.5
-
-      if (imageryMode === 'SAR') {
-        strokeColor = '#00d2b4'
-        fillColor = '#020713'
-        fillOpacity = 0.9
-        strokeWidth = 2.5
-      } else if (imageryMode === 'OPTICAL') {
-        strokeColor = '#10b981'
-        fillColor = '#064e3b'
-        fillOpacity = 0.75
-        strokeWidth = 2.0
-      } else {
-        strokeColor = '#00d2b4'
-        fillColor = '#152540'
-        fillOpacity = 0.85
-        strokeWidth = 3.0
-      }
-
-      const slick = L.polygon(slickPolygon, {
-        color: strokeColor,
-        weight: strokeWidth,
-        fillColor: fillColor,
-        fillOpacity: fillOpacity
-      })
-
-      slick.bindPopup(`
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #f8fafc; min-width: 220px;">
-          <div style="color: ${strokeColor}; font-weight: bold; margin-bottom: 4px; display: flex; justify-content: space-between;">
-            <span>${incident.detection.classification.replace(/_/g, ' ')}</span>
-            <span style="font-size: 10px; padding: 1px 4px; background: rgba(0,210,180,0.2); border-radius: 2px;">${imageryMode}</span>
-          </div>
-          <div>Surface Area: <strong>${incident.characterisation.surfaceAreaKm2} km²</strong></div>
-          <div>Estimated Volume: <strong>${incident.characterisation.estimatedVolumeM3.toLocaleString()} m³</strong></div>
-          <div>Neural Confidence: <strong>${incident.detection.confidenceScore}%</strong></div>
-          <div>SAR Damping: <strong>${incident.detection.sarDampingRatioDb} dB</strong></div>
-          <div>Spill Age: <strong>${incident.characterisation.spillAgeHours}h</strong></div>
-          <div style="margin-top: 6px; font-size: 10px; color: #94a3b8;">Click suspect vessel to inspect attribution</div>
-        </div>
-      `)
-      layerGroup.addLayer(slick)
-
-      // Center marker icon
-      const slickMarker = L.circleMarker(incident.detection.centroid, {
-        radius: 6,
-        color: strokeColor,
-        fillColor: strokeColor,
-        fillOpacity: 0.9
-      })
-      slickMarker.bindTooltip(`Centroid: ${incident.detection.centroid[0].toFixed(3)}°N, ${incident.detection.centroid[1].toFixed(3)}°E`, {
-        direction: 'top',
-        className: 'tactical-tooltip'
-      })
-      layerGroup.addLayer(slickMarker)
-    }
-
-    // 4. Backward Lagrangian Hindcast & Probable Origin (Toggleable via showDriftCone)
-    const hindcast = incident.hindcast
-    if (showDriftCone && hindcast && hindcast.timeSteps.length > 0) {
-      const stepsToRender = hindcastPlaybackStep >= 0
-        ? hindcast.timeSteps.slice(0, hindcastPlaybackStep + 1)
-        : hindcast.timeSteps
-
-      // Trajectory line
-      if (stepsToRender.length > 1) {
-        const trajectoryPoints = stepsToRender.map((t) => t.meanPosition)
-        const hindcastLine = L.polyline(trajectoryPoints, {
-          color: '#00d2b4',
-          weight: 2.5,
-          dashArray: '6, 6',
-          opacity: 0.9
-        })
-        layerGroup.addLayer(hindcastLine)
-      }
-
-      // Particle cloud
-      stepsToRender.forEach((step, sIdx) => {
-        const isCurrentActiveStep = sIdx === stepsToRender.length - 1 && hindcastPlaybackStep >= 0
-        step.particles.forEach((pt) => {
-          const pMarker = L.circleMarker(pt, {
-            radius: isCurrentActiveStep ? 3.5 : 2,
-            color: isCurrentActiveStep ? '#00d2b4' : 'rgba(0, 210, 180, 0.6)',
-            fillColor: '#00d2b4',
-            fillOpacity: isCurrentActiveStep ? 0.9 : 0.45,
-            stroke: isCurrentActiveStep
-          })
-          layerGroup.addLayer(pMarker)
-        })
-      })
-
-      // Probable Origin Ellipse (Spill Origin T₀) - Distinct High-Contrast Teal (#00d2b4)
-      const origin = hindcast.probableOrigin
-      if (origin && origin.coordinates && (hindcastPlaybackStep === -1 || hindcastPlaybackStep === hindcast.timeSteps.length - 1)) {
-        const originCircle = L.circle(origin.coordinates, {
-          radius: origin.searchRadiusKm * 1000,
-          color: '#00d2b4',
-          weight: 2.5,
-          fillColor: '#00d2b4',
-          fillOpacity: 0.28,
-          dashArray: '5, 5'
-        })
-        originCircle.bindPopup(`
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #f8fafc;">
-            <div style="color: #00d2b4; font-weight: bold; margin-bottom: 4px;">PROBABLE RELEASE ORIGIN ZONE (T₀)</div>
-            <div>Coords: <strong>${origin.coordinates[0].toFixed(3)}°N, ${origin.coordinates[1].toFixed(3)}°E</strong></div>
-            <div>Search Radius: <strong>${origin.searchRadiusKm} km</strong></div>
-            <div>Estimated Time: <strong>${origin.releaseTime.slice(11, 19)} UTC</strong></div>
-            <div>Spatial Confidence: <strong>${origin.confidencePercent}%</strong></div>
-          </div>
-        `)
-        layerGroup.addLayer(originCircle)
-
-        const originCenterMarker = L.circleMarker(origin.coordinates, {
-          radius: 7,
-          color: '#ffffff',
-          weight: 2.5,
-          fillColor: '#00d2b4',
-          fillOpacity: 1
-        })
-        originCenterMarker.bindTooltip(`⌖ SPILL ORIGIN (T₀) | ${origin.coordinates[0].toFixed(3)}°N, ${origin.coordinates[1].toFixed(3)}°E`, {
-          permanent: true,
-          direction: 'bottom',
-          className: 'tactical-tooltip'
-        })
-        layerGroup.addLayer(originCenterMarker)
-      }
-    }
-
-    // 5. Forward Forecast Spread Envelope
-    const forecast = incident.forecast
-    if (showDriftCone && forecast && forecast.forecastSpreadPolygon.length > 2 && (forecastSliderHour < 48 || activeStage === 'FORECAST')) {
-      const scaleFactor = Math.max(0.15, forecastSliderHour / 48)
-      const centroid = incident.detection.centroid
-      const scaledPolygon = forecast.forecastSpreadPolygon.map(([lat, lon]) => [
-        centroid[0] + (lat - centroid[0]) * scaleFactor,
-        centroid[1] + (lon - centroid[1]) * scaleFactor
-      ] as [number, number])
-
-      const forecastPolygon = L.polygon(scaledPolygon, {
-        color: '#f59e0b',
-        weight: 1.8,
-        dashArray: '5, 5',
-        fillColor: '#f59e0b',
-        fillOpacity: 0.18 + (scaleFactor * 0.12)
-      })
-      forecastPolygon.bindPopup(`
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #f8fafc;">
-          <div style="color: #f59e0b; font-weight: bold; margin-bottom: 4px;">FORWARD DRIFT FORECAST (+${forecastSliderHour}h)</div>
-          <div>Landfall Risk: <strong style="color: ${forecast.landfallRisk.riskLevel === 'CRITICAL' ? '#f43f5e' : '#f59e0b'}">${forecast.landfallRisk.riskLevel}</strong></div>
-          <div>Vulnerable Zone: <strong>${forecast.landfallRisk.vulnerableZone || 'Fairway'}</strong></div>
-        </div>
-      `)
-      layerGroup.addLayer(forecastPolygon)
-    }
-
-    // 6. AIS Vessel Tracks & Positions (Toggleable via showAisTracks & showDarkSegments)
-    const vessels = incident.aisVessels
-    const primarySuspect = selectedSuspect || incident.suspects[0]
-
-    if (showAisTracks) {
-      vessels.forEach((vessel) => {
-        const isTopSuspect = primarySuspect && primarySuspect.vessel.id === vessel.id
-        const markerColor = isTopSuspect ? '#f43f5e' : vessel.hasBlackout ? '#f59e0b' : '#38bdf8'
-
-        // Vessel current position marker
-        const vesselMarker = L.circleMarker(vessel.currentPosition, {
-          radius: isTopSuspect ? 9 : 6,
-          color: markerColor,
-          weight: isTopSuspect ? 3 : 2,
-          fillColor: markerColor,
-          fillOpacity: 0.95
-        })
-
-        vesselMarker.bindPopup(`
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #f8fafc; min-width: 220px;">
-            <div style="color: ${markerColor}; font-weight: bold; font-size: 13px; margin-bottom: 4px;">
-              ${vessel.name} ${isTopSuspect ? '★ PRIMARY SUSPECT' : ''}
-            </div>
-            <div>IMO: <strong>${vessel.imo}</strong> | MMSI: <strong>${vessel.mmsi}</strong></div>
-            <div>Type: <strong>${vessel.vesselType.replace(/_/g, ' ')}</strong></div>
-            <div>Speed / Course: <strong>${vessel.sogKnots} kts / ${vessel.cogDegrees}°</strong></div>
-            ${vessel.hasBlackout ? `<div style="color: #f43f5e; font-weight: bold; margin-top: 4px;">⚠️ AIS BLACKOUT: ${vessel.blackoutDurationMin || 45} min gap</div>` : ''}
-          </div>
-        `)
-
-        vesselMarker.on('click', () => {
-          const suspectMatch = incident.suspects.find((s) => s.vessel.id === vessel.id)
-          if (suspectMatch) setSelectedSuspect(suspectMatch)
-        })
-
-        layerGroup.addLayer(vesselMarker)
-
-        // Trajectory trail
-        if (vessel.trajectory && vessel.trajectory.length > 1) {
-          const trailPoints = vessel.trajectory.map((p) => p.position)
-
-          if (showDarkSegments && vessel.hasBlackout && vessel.trajectory.length >= 3) {
-            // Normal segment
-            const preBlackout = vessel.trajectory.slice(0, 2).map((p) => p.position)
-            layerGroup.addLayer(L.polyline(preBlackout, { color: markerColor, weight: isTopSuspect ? 2.5 : 1.5, opacity: 0.7 }))
-
-            // Blackout gap segment (dashed coral-red)
-            const blackoutMins = vessel.blackoutDurationMin || 45
-            const blackoutSegment = vessel.trajectory.slice(1, 3).map((p) => p.position)
-            const blackoutLine = L.polyline(blackoutSegment, {
-              color: '#f43f5e',
-              weight: 3.5,
-              dashArray: '5, 5',
-              opacity: 0.95
-            })
-            blackoutLine.bindTooltip(`⚠️ ${vessel.name} AIS BLACKOUT (${blackoutMins} min)`, {
-              direction: 'center',
-              className: 'tactical-tooltip'
-            })
-            layerGroup.addLayer(blackoutLine)
-
-            // Post-blackout segment
-            const postBlackout = vessel.trajectory.slice(2).map((p) => p.position)
-            if (postBlackout.length > 1) {
-              layerGroup.addLayer(L.polyline(postBlackout, { color: markerColor, weight: isTopSuspect ? 2.5 : 1.5, opacity: 0.7 }))
-            }
-          } else {
-            const trail = L.polyline(trailPoints, {
-              color: markerColor,
-              weight: isTopSuspect ? 2.5 : 1.2,
-              opacity: isTopSuspect ? 0.9 : 0.45
-            })
-            layerGroup.addLayer(trail)
-          }
-        }
-      })
-    }
-
-    // 7. Tactical Intercept Line (When primary suspect active) - Distinct Coral-Red (#f43f5e)
-    const highlightedVesselId = activeEvidenceHighlight || (primarySuspect ? primarySuspect.vessel.id : null)
-    if (highlightedVesselId && primarySuspect && primarySuspect.vessel.id === highlightedVesselId) {
-      const originCoords = incident.hindcast.probableOrigin?.coordinates
-      const vesselPos = primarySuspect.vessel.currentPosition
-
-      if (originCoords && vesselPos) {
-        const interceptLine = L.polyline([originCoords, vesselPos], {
-          color: '#f43f5e',
-          weight: 3.5,
-          dashArray: '6, 6',
-          opacity: 1
-        })
-        layerGroup.addLayer(interceptLine)
-
-        const midLat = (originCoords[0] + vesselPos[0]) / 2
-        const midLon = (originCoords[1] + vesselPos[1]) / 2
-        const evidenceMarker = L.circleMarker([midLat, midLon], {
-          radius: 7,
-          color: '#ffffff',
-          weight: 2.5,
-          fillColor: '#f43f5e',
-          fillOpacity: 1
-        })
-        evidenceMarker.bindTooltip(`⚠️ FORENSIC INTERCEPT: CPA ${primarySuspect.cpaDistanceNm ?? 0.82} NM | Δt ${primarySuspect.cpaTimeDeltaMin ?? 18} min`, {
-          permanent: true,
-          direction: 'top',
-          className: 'tactical-tooltip'
-        })
-        layerGroup.addLayer(evidenceMarker)
-      }
-    }
-  }, [
-    incident,
-    activeStage,
-    region,
-    imageryMode,
-    hindcastPlaybackStep,
-    forecastSliderHour,
-    activeEvidenceHighlight,
-    selectedSuspect,
-    showSlickPolygon,
-    showDriftCone,
-    showAisTracks,
-    showDarkSegments
-  ])
+  }
 
   return (
-    <div className="map-viewport-wrapper w-full h-full relative overflow-hidden z-0" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', zIndex: 0 }}>
-      {/* Map Container (Base Layer: z-0) */}
-      <div ref={mapContainerRef} className="w-full h-full" style={{ width: '100%', height: '100%', zIndex: 0 }} />
+    <div className="relative w-full h-full overflow-hidden" style={{ background: '#050a12' }}>
+      {/* Mapbox GL Map Container */}
+      <div
+        ref={mapContainerRef}
+        className="map-viewport-container mapboxgl-map maplibregl-map leaflet-container h-full w-full relative"
+        style={{ width: '100%', height: '100%' }}
+      />
 
-      {/* Floating Canvas Overlay for Animated Hydrodynamic Particle Flow (Overlay: z-10) */}
+      {/* Animated Metocean Particle Flow Canvas Overlay */}
       <canvas
         ref={particleCanvasRef}
         style={{
@@ -531,7 +610,7 @@ export const TacticalMapCanvas: React.FC = () => {
         }}
       />
 
-      {/* Floating Top-Left Focus Presets Toolbar (Toolbar: z-20, anchored to absolute top-4 left-4) */}
+      {/* Floating Top-Left Focus Presets Toolbar (Toolbar: z-20) */}
       <div
         className="glass-hud absolute top-4 left-4 z-20"
         style={{
@@ -558,7 +637,7 @@ export const TacticalMapCanvas: React.FC = () => {
           }}
         >
           <Crosshair size={13} />
-          <span>FOCUS:</span>
+          <span>3D FOCUS:</span>
         </span>
 
         {([
@@ -572,7 +651,7 @@ export const TacticalMapCanvas: React.FC = () => {
           return (
             <button
               key={preset.id}
-              onClick={() => triggerFocusPreset(preset.id)}
+              onClick={() => handleFocusPresetClick(preset.id)}
               style={{
                 padding: '4px 10px',
                 border: 'none',
@@ -713,3 +792,4 @@ export const TacticalMapCanvas: React.FC = () => {
     </div>
   )
 }
+export default TacticalMapCanvas

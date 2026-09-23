@@ -120,5 +120,28 @@ This document preserves architectural memory, key technical decisions, known iss
    - Captured full dashboard screenshot to artifact directory (`dashboard_overhaul.png`).
    - Verified 100% passing tests: `npm run typecheck` (0 errors), `npm test` (23/23 tests pass), `npm run test:e2e` (2/2 test suites pass in 13.6s), and `npm run build` (production build passes in 6.13s).
 
+---
+
+## Session Ledger: 2026-09-23 (3D Isometric Mapbox GL Forensic Scene Upgrade [TASK-11])
+
+### Accomplished in this Session
+1. **Camera & 3D Isometric Perspective:**
+   - Upgraded map engine to Mapbox GL JS with `pitch: 60` and `bearing: -20` on initialization.
+   - Integrated smooth 3D camera animations (`pitch: 60-65`, `bearing: -15 to -30`) across all 5 tactical focus presets.
+2. **3D Volumetric Extrusions (`fill-extrusion`):**
+   - Converted 2D Spill Origin bounding box into a glowing cyan 3D bounding prism volume (`fill-extrusion`, height: 500m, opacity: 0.82).
+   - Converted 2D AIS uncertainty circles into translucent glowing yellow 3D cylinders (`fill-extrusion`, height: 380m, opacity: 0.42).
+3. **Glowing Neon Trajectories:**
+   - Upgraded suspect vessel track with double-layer technique: duplicate line beneath with `line-blur: 15` and `line-width: 15` for neon blur, topped by sharp dashed core line.
+4. **Floating Digital Glass HUD Markers (`new mapboxgl.Marker()`):**
+   - Converted flat labels into floating digital glass panels with cyan/coral glowing borders, backdrop-filter blur, and coordinate stems.
+   - Rendered 3D vessel marker badge for MT OCEANUS PRIDE and legal traffic badges for background vessels.
+5. **Testing & Quality Assurance:**
+   - `npm run typecheck`: 0 errors
+   - `npm test`: 23/23 passing
+   - `npx playwright test`: 2/2 suites passing (15.3s)
+   - `npm run build`: Production bundle clean in 5.79s
+
+
 
 
