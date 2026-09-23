@@ -37,35 +37,30 @@ const OperationsConsoleContent: React.FC = () => {
   const roleTabLabel = activeRole === 'COAST_GUARD' ? 'COAST GUARD VIEW' : `${activeRole.replace(/_/g, ' ')} VIEW`
 
   return (
-    <div className="app-shell">
+    <div className="app-shell h-screen w-screen overflow-hidden flex flex-col">
       {/* 1. TOP FIXED HEADER REGION (Navbar + KPI Ribbon + Workflow Stepper) */}
-      <header className="app-header-region">
+      <header className="app-header-region flex-shrink-0">
         <TacticalHeader />
         <KPIRibbon />
         <PipelineStepper />
       </header>
 
-      {/* 2. MAIN CONTENT WORKSPACE (CSS Grid with Explicit Fractional Tracks) */}
-      <main className="main-content">
+      {/* 2. MIDDLE CONTENT AREA (flex-1 flex flex-row overflow-hidden) */}
+      <div className="middle-content-area flex-1 flex flex-row overflow-hidden relative">
         {/* Render Active Console View */}
         {activeConsoleView === 'MAP' && (
-          <div className={`console-map-layout ${isInspectorCollapsed ? 'inspector-collapsed' : ''}`}>
-            {/* Column 1, Row 1: Tactical Map Canvas Viewport */}
-            <div className="map-viewport-wrapper">
+          <>
+            {/* Hero Map Container: flex-1 relative, occupying fluid remaining space */}
+            <div className="map-hero-container flex-1 relative h-full overflow-hidden">
               <TacticalMapCanvas />
             </div>
 
-            {/* Column 1, Row 2: Bottom Docked Timeline Scrubber */}
-            <div className="timeline-scrubber-region">
-              <TimelineScrubber />
-            </div>
-
-            {/* Column 2, Row 1 & 2: Right Tactical Inspector Panel / Collapsed Rail */}
+            {/* Right Side Panel: docked strictly to the right with fixed width (420px), bordered, internal overflow-y-auto */}
             {isInspectorCollapsed ? (
-              <div className="inspector-collapsed-rail">
+              <div className="inspector-collapsed-rail flex-shrink-0 w-[40px] h-full border-l border-[var(--border-medium)] bg-[var(--bg-surface)] flex flex-col items-center py-3 z-30">
                 <button
                   onClick={() => setIsInspectorCollapsed(false)}
-                  title="Show Inspector Panel"
+                  title="Expand Inspector Panel"
                   style={{
                     background: 'transparent',
                     border: 'none',
@@ -85,11 +80,11 @@ const OperationsConsoleContent: React.FC = () => {
                   }}
                 >
                   <ChevronLeft size={16} />
-                  <span>SHOW INSPECTOR</span>
+                  <span>EXPAND INSPECTOR</span>
                 </button>
               </div>
             ) : (
-              <aside className="inspector-panel" aria-label="Incident Inspector">
+              <aside className="right-side-panel flex-shrink-0 w-[420px] h-full border-l border-[var(--border-medium)] flex flex-col z-30 bg-[var(--bg-glass)] backdrop-blur-md overflow-hidden">
                 {/* Inspector Tabs */}
                 <div
                   style={{
@@ -195,8 +190,8 @@ const OperationsConsoleContent: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Inspector Body */}
-                <div className="inspector-body">
+                {/* Inspector Internal Scrollable Body */}
+                <div className="inspector-body flex-1 overflow-y-auto overflow-x-hidden flex flex-col">
                   {sideTab === 'TIMELINE' ? (
                     <TimelinePanel />
                   ) : sideTab === 'AGENCY' ? (
@@ -218,37 +213,44 @@ const OperationsConsoleContent: React.FC = () => {
                 </div>
               </aside>
             )}
-          </div>
+          </>
         )}
 
         {/* View 2: Evidence Graph */}
         {activeConsoleView === 'EVIDENCE_GRAPH' && (
-          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+          <div className="flex-1 w-full h-full overflow-hidden">
             <EvidenceGraphView />
           </div>
         )}
 
         {/* View 3: Suspects Leaderboard */}
         {activeConsoleView === 'SUSPECTS' && (
-          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+          <div className="flex-1 w-full h-full overflow-hidden">
             <SuspectsView />
           </div>
         )}
 
         {/* View 4: What-If Sensitivity Testing */}
         {activeConsoleView === 'WHAT_IF' && (
-          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+          <div className="flex-1 w-full h-full overflow-hidden">
             <WhatIfView />
           </div>
         )}
 
         {/* View 5: Formal Legal Dossier Report */}
         {activeConsoleView === 'DOSSIER' && (
-          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+          <div className="flex-1 w-full h-full overflow-hidden">
             <DossierView />
           </div>
         )}
-      </main>
+      </div>
+
+      {/* 3. BOTTOM TIMELINE SCRUBBER (Fixed height at bottom, strictly spanning full width without floating over map) */}
+      {activeConsoleView === 'MAP' && (
+        <div className="bottom-timeline-region flex-shrink-0 w-full border-t border-[var(--border-subtle)] bg-[rgba(8,12,22,0.96)] z-20">
+          <TimelineScrubber />
+        </div>
+      )}
 
       {/* 5. STATUS / TELEMETRY CONTROLS FOOTER */}
       <footer

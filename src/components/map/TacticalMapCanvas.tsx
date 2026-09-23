@@ -12,6 +12,7 @@ export const TacticalMapCanvas: React.FC = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const layerGroupRef = useRef<L.LayerGroup | null>(null)
+  const tileLayerRef = useRef<L.TileLayer | null>(null)
   const particleCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const animationFrameRef = useRef<number | null>(null)
 
@@ -53,9 +54,11 @@ export const TacticalMapCanvas: React.FC = () => {
       attributionControl: false
     })
 
-    const tileLayer = createTacticalTileLayer(L)
+    const initialMode = (imageryMode === 'OPTICAL' || imageryMode === 'FUSION') ? 'SATELLITE' : 'DARK'
+    const tileLayer = createTacticalTileLayer(L, initialMode)
     if (tileLayer) {
       tileLayer.addTo(map)
+      tileLayerRef.current = tileLayer
     }
 
     L.control.attribution({ position: 'bottomright', prefix: 'SAGAR RAKSHAK // C4I Map' }).addTo(map)
@@ -76,8 +79,30 @@ export const TacticalMapCanvas: React.FC = () => {
       resizeObserver.disconnect()
       map.remove()
       mapInstanceRef.current = null
+      tileLayerRef.current = null
     }
   }, [])
+
+  // Switch Base Map Style Dynamically (Deep-Ocean Dark vs Satellite Imagery)
+  useEffect(() => {
+    if (!mapInstanceRef.current) return
+    const map = mapInstanceRef.current
+
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current)
+    }
+
+    const targetMode = (imageryMode === 'OPTICAL' || imageryMode === 'FUSION') ? 'SATELLITE' : 'DARK'
+    const newTileLayer = createTacticalTileLayer(L, targetMode)
+    if (newTileLayer) {
+      newTileLayer.addTo(map)
+      // Send base tile layer to bottom behind overlays
+      if (typeof newTileLayer.bringToBack === 'function') {
+        newTileLayer.bringToBack()
+      }
+      tileLayerRef.current = newTileLayer
+    }
+  }, [imageryMode])
 
   // Camera pan & zoom on focus target change
   useEffect(() => {
@@ -300,16 +325,16 @@ export const TacticalMapCanvas: React.FC = () => {
         })
       })
 
-      // Probable Origin Ellipse
+      // Probable Origin Ellipse (Spill Origin T₀) - Distinct High-Contrast Teal (#00d2b4)
       const origin = hindcast.probableOrigin
       if (origin && origin.coordinates && (hindcastPlaybackStep === -1 || hindcastPlaybackStep === hindcast.timeSteps.length - 1)) {
         const originCircle = L.circle(origin.coordinates, {
           radius: origin.searchRadiusKm * 1000,
           color: '#00d2b4',
-          weight: 2,
+          weight: 2.5,
           fillColor: '#00d2b4',
-          fillOpacity: 0.22,
-          dashArray: '4, 4'
+          fillOpacity: 0.28,
+          dashArray: '5, 5'
         })
         originCircle.bindPopup(`
           <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #f8fafc;">
@@ -323,12 +348,17 @@ export const TacticalMapCanvas: React.FC = () => {
         layerGroup.addLayer(originCircle)
 
         const originCenterMarker = L.circleMarker(origin.coordinates, {
-          radius: 5,
-          color: '#00d2b4',
+          radius: 7,
+          color: '#ffffff',
+          weight: 2.5,
           fillColor: '#00d2b4',
           fillOpacity: 1
         })
-        originCenterMarker.bindTooltip('Spill Origin T₀', { permanent: true, direction: 'bottom', className: 'tactical-tooltip' })
+        originCenterMarker.bindTooltip(`⌖ SPILL ORIGIN (T₀) | ${origin.coordinates[0].toFixed(3)}°N, ${origin.coordinates[1].toFixed(3)}°E`, {
+          permanent: true,
+          direction: 'bottom',
+          className: 'tactical-tooltip'
+        })
         layerGroup.addLayer(originCenterMarker)
       }
     }
@@ -438,7 +468,7 @@ export const TacticalMapCanvas: React.FC = () => {
       })
     }
 
-    // 7. Tactical Intercept Line (When primary suspect active)
+    // 7. Tactical Intercept Line (When primary suspect active) - Distinct Coral-Red (#f43f5e)
     const highlightedVesselId = activeEvidenceHighlight || (primarySuspect ? primarySuspect.vessel.id : null)
     if (highlightedVesselId && primarySuspect && primarySuspect.vessel.id === highlightedVesselId) {
       const originCoords = incident.hindcast.probableOrigin?.coordinates
@@ -446,22 +476,23 @@ export const TacticalMapCanvas: React.FC = () => {
 
       if (originCoords && vesselPos) {
         const interceptLine = L.polyline([originCoords, vesselPos], {
-          color: '#fbbf24',
-          weight: 2.5,
+          color: '#f43f5e',
+          weight: 3.5,
           dashArray: '6, 6',
-          opacity: 0.95
+          opacity: 1
         })
         layerGroup.addLayer(interceptLine)
 
         const midLat = (originCoords[0] + vesselPos[0]) / 2
         const midLon = (originCoords[1] + vesselPos[1]) / 2
         const evidenceMarker = L.circleMarker([midLat, midLon], {
-          radius: 5,
-          color: '#fbbf24',
-          fillColor: '#fbbf24',
+          radius: 7,
+          color: '#ffffff',
+          weight: 2.5,
+          fillColor: '#f43f5e',
           fillOpacity: 1
         })
-        evidenceMarker.bindTooltip(`FORENSIC INTERCEPT: CPA ${primarySuspect.cpaDistanceNm ?? 0.82} NM | Δt ${primarySuspect.cpaTimeDeltaMin ?? 18} min`, {
+        evidenceMarker.bindTooltip(`⚠️ FORENSIC INTERCEPT: CPA ${primarySuspect.cpaDistanceNm ?? 0.82} NM | Δt ${primarySuspect.cpaTimeDeltaMin ?? 18} min`, {
           permanent: true,
           direction: 'top',
           className: 'tactical-tooltip'
@@ -485,9 +516,9 @@ export const TacticalMapCanvas: React.FC = () => {
   ])
 
   return (
-    <div className="map-viewport-wrapper" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', zIndex: 0 }}>
+    <div className="map-viewport-wrapper w-full h-full relative overflow-hidden z-0" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', zIndex: 0 }}>
       {/* Map Container (Base Layer: z-0) */}
-      <div ref={mapContainerRef} style={{ width: '100%', height: '100%', zIndex: 0 }} />
+      <div ref={mapContainerRef} className="w-full h-full" style={{ width: '100%', height: '100%', zIndex: 0 }} />
 
       {/* Floating Canvas Overlay for Animated Hydrodynamic Particle Flow (Overlay: z-10) */}
       <canvas
@@ -500,13 +531,13 @@ export const TacticalMapCanvas: React.FC = () => {
         }}
       />
 
-      {/* Floating Top-Left Focus Presets Toolbar (Toolbar: z-20) */}
+      {/* Floating Top-Left Focus Presets Toolbar (Toolbar: z-20, anchored to absolute top-4 left-4) */}
       <div
-        className="glass-hud"
+        className="glass-hud absolute top-4 left-4 z-20"
         style={{
           position: 'absolute',
-          top: '12px',
-          left: '12px',
+          top: '16px',
+          left: '16px',
           zIndex: 20,
           borderRadius: 'var(--radius-sm)',
           padding: '4px',
@@ -563,10 +594,11 @@ export const TacticalMapCanvas: React.FC = () => {
 
       {/* Floating Left Layer Manager HUD & Imagery Switcher (Under Focus Presets, z-20) */}
       <div
+        className="absolute z-20"
         style={{
           position: 'absolute',
-          top: '48px',
-          left: '12px',
+          top: '56px',
+          left: '16px',
           zIndex: 20,
           display: 'flex',
           gap: '8px'
@@ -632,11 +664,11 @@ export const TacticalMapCanvas: React.FC = () => {
       {/* Floating Layer Toggles Drawer Menu (Dropdown: z-25) */}
       {isLayerHudOpen && (
         <div
-          className="glass-hud"
+          className="glass-hud absolute z-25"
           style={{
             position: 'absolute',
-            top: '86px',
-            left: '12px',
+            top: '96px',
+            left: '16px',
             zIndex: 25,
             width: '240px',
             padding: '12px 14px',

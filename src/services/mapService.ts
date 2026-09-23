@@ -38,10 +38,21 @@ export const demoMapProvider: MapTileProviderConfig = {
   url: 'https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
   attribution: '&copy; <a href="https://www.esri.com" target="_blank" rel="noopener noreferrer">Esri</a>, DeLorme, NAVTEQ',
   maxZoom: 16,
-  minZoom: 3
+  minZoom: 3,
+  className: 'esri-dark-tiles'
 }
 
-// 2. Fallback Demo Provider: Standard OpenStreetMap with CSS inverted tactical dark filter
+// 2. High-Res Satellite Theme (Esri World Imagery / Mapbox Satellite Streets equivalent)
+export const satelliteProvider: MapTileProviderConfig = {
+  name: 'Esri World Imagery (High-Res Dark Satellite)',
+  url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  attribution: '&copy; <a href="https://www.esri.com">Esri</a>, Maxar, Earthstar Geographics',
+  maxZoom: 18,
+  minZoom: 3,
+  className: 'satellite-tiles'
+}
+
+// 3. Fallback Demo Provider: Standard OpenStreetMap with tactical dark styling filter
 export const fallbackMapProvider: MapTileProviderConfig = {
   name: 'OpenStreetMap (Tactical Dark Fallback)',
   url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -51,7 +62,7 @@ export const fallbackMapProvider: MapTileProviderConfig = {
   className: 'tactical-dark-tiles'
 }
 
-// 3. Optional Live Map Provider (if env keys exist, else undefined)
+// 4. Optional Live Map Provider (if env keys exist, else undefined)
 export const getLiveMapProvider = (): MapTileProviderConfig | undefined => {
   const customUrl = (import.meta as any).env?.VITE_MAP_TILE_URL
   const customAttribution = (import.meta as any).env?.VITE_MAP_ATTRIBUTION
@@ -68,16 +79,15 @@ export const getLiveMapProvider = (): MapTileProviderConfig | undefined => {
 }
 
 /**
- * Creates an L.TileLayer guaranteed to work in DEMO MODE without any API key or watermarks.
- * Gracefully cascades to OpenStreetMap if primary tiles fail.
+ * Creates an L.TileLayer guaranteed to render dark tactical ocean or satellite imagery without white glare.
  */
-export function createTacticalTileLayer(leafletInstance?: any): any {
-  const liveProvider = getLiveMapProvider()
-  const activeConfig = liveProvider || demoMapProvider
-
+export function createTacticalTileLayer(leafletInstance?: any, mode: 'DARK' | 'SATELLITE' = 'DARK'): any {
   if (!leafletInstance) {
     return null
   }
+
+  const liveProvider = getLiveMapProvider()
+  const activeConfig = liveProvider || (mode === 'SATELLITE' ? satelliteProvider : demoMapProvider)
 
   const tileLayer = leafletInstance.tileLayer(activeConfig.url, {
     maxZoom: activeConfig.maxZoom,
@@ -91,7 +101,7 @@ export function createTacticalTileLayer(leafletInstance?: any): any {
   tileLayer.on('tileerror', () => {
     if (!hasFallenBack && activeConfig.url !== fallbackMapProvider.url) {
       hasFallenBack = true
-      console.warn('[mapService] Primary tile provider error detected. Falling back to OpenStreetMap dark filter.')
+      console.warn('[mapService] Primary tile error. Falling back to alternative dark nautical tiles.')
       tileLayer.setUrl(fallbackMapProvider.url)
     }
   })

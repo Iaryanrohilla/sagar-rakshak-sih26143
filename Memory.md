@@ -80,4 +80,45 @@ This document preserves architectural memory, key technical decisions, known iss
    - `npm test`: 23/23 tests passing
    - `npm run test:e2e`: Playwright E2E passing (10.1s)
 
+---
+
+## Session Ledger: 2026-09-23 (SAGAR RAKSHAK UI Overhaul, Map High-Contrast & Visual Clearing [TASK-10])
+
+### Accomplished in this Session
+1. **Phase 1: Diagnose & Map Overhaul (Eliminated White Canvas Glare):**
+   - Root-caused map tile inversion: removed destructive `filter: invert(1)` from `.leaflet-tile` in `src/styles/index.css`.
+   - Preserved Esri Dark Gray Canvas as the zero-key tactical maritime base map and added Esri World Imagery as the high-resolution satellite imagery layer.
+   - Enhanced the oil slick polygon with high-contrast SAR styling (`#00d2b4` stroke, `#020713` fill, permanent centroid marker).
+   - Rendered the Spill Origin ($T_0$) with high-contrast Teal marker and permanent tooltip `⌖ SPILL ORIGIN (T₀) | Coords`.
+   - Rendered the forensic vessel intercept trajectory with high-contrast Coral-Red badge and dashed line (`FORENSIC INTERCEPT: CPA 0.82 NM | Δt 18 min`).
+   - Added continuous particle flow simulation driven by metocean current and wind vectors on an HTML5 canvas overlay.
+
+2. **Phase 2: Strict Layout Re-Architecture (Zero Component Collisions):**
+   - Restructured application shell into strict Flexbox/Grid: `h-screen w-screen overflow-hidden flex flex-col`.
+   - Top Header Region (`flex-shrink-0`): Fixed TacticalHeader, KPIRibbon, and PipelineStepper.
+   - Middle Workspace (`flex-1 flex flex-row overflow-hidden relative`):
+     - Left/Center: Full-bleed Tactical Map Viewport (`flex-1 relative h-full overflow-hidden`).
+     - Right: Docked Pipeline & Incident Summary Panel with fixed `w-[420px]` width, `border-l border-[var(--border-medium)]`, and internal `overflow-y-auto`. Strictly docked in horizontal layout flow — never floats over or obscures the map.
+   - Bottom Bar: Timeline Scrubber docked strictly at the bottom (`flex-shrink-0 w-full`), spanning full width below the middle section.
+   - Standardized z-index hierarchy: Base Map (`z-0`) < Particle Overlay (`z-10`) < Floating Toolbars / Badges (`z-20`) < Dropdowns (`z-25`) < Docked Inspector (`z-30`) < Dialogs (`z-1000`).
+
+3. **Phase 3: Noise Reduction & Visual Hierarchy:**
+   - Overhauled `KPIRibbon.tsx` to feature 3 Core Hero Numbers large and bold at the top left/center:
+     1. **AI Detection Confidence %** (`1.42rem`, font-weight 900, glowing Teal `#00d2b4`, SAR UNet badge)
+     2. **Spill Area** (`1.42rem`, font-weight 900, bright Cyan `#38bdf8`, polygon area in km², estimated volume)
+     3. **Top Suspect Match %** (`1.42rem`, font-weight 900, Coral-Red `#f43f5e`, flag, vessel name)
+   - Followed by compact secondary telemetry stream with strict domain color hierarchy:
+     - SAR = Teal (`#00d2b4`)
+     - AIS = Amber (`#f59e0b`)
+     - Ocean / Metocean = Marine Green (`#10b981`)
+     - Suspects / Intercepts = Coral-Red (`#f43f5e`)
+
+4. **Phase 4: Verify & Auto-Correct (Ralph Self-Correction Loop):**
+   - Created Playwright visual verification suite (`tests/e2e/visual_verify.spec.ts`).
+   - Verified exact bounding boxes: right panel width `420px`, map right edge equals right panel left edge (zero horizontal overlap), timeline scrubber strictly below middle content area.
+   - Verified dark tile styles without `invert(1)`.
+   - Captured full dashboard screenshot to artifact directory (`dashboard_overhaul.png`).
+   - Verified 100% passing tests: `npm run typecheck` (0 errors), `npm test` (23/23 tests pass), `npm run test:e2e` (2/2 test suites pass in 13.6s), and `npm run build` (production build passes in 6.13s).
+
+
 
