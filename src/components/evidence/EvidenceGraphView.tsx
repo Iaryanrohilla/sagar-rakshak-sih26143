@@ -9,12 +9,9 @@ import {
   Radio,
   AlertTriangle,
   UserCheck,
-  CheckCircle2,
   ExternalLink,
-  Info,
   ChevronRight,
-  ShieldCheck,
-  Cpu
+  ShieldCheck
 } from 'lucide-react'
 
 interface GraphNode {
@@ -37,8 +34,7 @@ export const EvidenceGraphView: React.FC = () => {
     setActiveConsoleView,
     triggerFocusPreset,
     showEvidenceOnMap,
-    openWhyVessel,
-    openExplainAI
+    openWhyVessel
   } = useIncident()
 
   const [selectedNodeId, setSelectedNodeId] = useState<string>('node-suspect')

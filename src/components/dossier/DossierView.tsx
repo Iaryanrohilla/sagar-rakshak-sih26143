@@ -7,16 +7,12 @@ import {
   Download,
   Copy,
   Check,
-  Shield,
   Lock,
-  Anchor,
-  AlertTriangle,
-  Scale,
-  Award
+  Anchor
 } from 'lucide-react'
 
 export const DossierView: React.FC = () => {
-  const { incident, currentScenario, currentUser, whatIfResult } = useIncident()
+  const { incident, currentUser, whatIfResult } = useIncident()
   const [copiedSha, setCopiedSha] = useState<boolean>(false)
 
   const region = PILOT_REGIONS[incident.regionId]

@@ -1,87 +1,171 @@
 import React from 'react'
 import {
-  Satellite,
   Target,
-  Sparkles,
   History,
-  TrendingUp,
   Radio,
-  UserCheck,
-  Bell,
-  Loader2
+  FileCheck,
+  Loader2,
+  ChevronRight
 } from 'lucide-react'
 import { useIncident, PipelineStage } from '../../state/IncidentContext'
+
+interface WorkflowStep {
+  id: string
+  label: string
+  stage: PipelineStage
+  viewTarget?: 'MAP' | 'EVIDENCE_GRAPH' | 'SUSPECTS' | 'WHAT_IF' | 'DOSSIER'
+  icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>
+  caption: string
+}
 
 export const PipelineStepper: React.FC = () => {
   const {
     activeStage,
     setActiveStage,
+    activeConsoleView,
+    setActiveConsoleView,
     isProcessing,
     processingProgress,
     processingStatusText
   } = useIncident()
 
-  const stages: { id: PipelineStage; label: string; number: string; icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }> }[] = [
-    { id: 'INGESTION', label: '1. SATELLITE INGEST', number: '1', icon: Satellite },
-    { id: 'DETECTION', label: '2. SLICK DETECT', number: '2', icon: Target },
-    { id: 'CHARACTERISATION', label: '3. CHARACTERISE & AGE', number: '3', icon: Sparkles },
-    { id: 'HINDCAST', label: '4. DRIFT HINDCAST', number: '4', icon: History },
-    { id: 'FORECAST', label: '5. DRIFT FORECAST', number: '5', icon: TrendingUp },
-    { id: 'CORRELATION', label: '6. AIS CORRELATE', number: '6', icon: Radio },
-    { id: 'ATTRIBUTION', label: '7. VESSEL ATTRIBUTION', number: '7', icon: UserCheck },
-    { id: 'ALERTS', label: '8. AGENCY ALERTS', number: '8', icon: Bell }
+  const workflowSteps: WorkflowStep[] = [
+    {
+      id: 'step-detect',
+      label: '1. DETECT & VERIFY',
+      stage: 'DETECTION',
+      viewTarget: 'MAP',
+      icon: Target,
+      caption: 'SAR + Optical Slick Ingest'
+    },
+    {
+      id: 'step-drift',
+      label: '2. REVERSE DRIFT',
+      stage: 'HINDCAST',
+      viewTarget: 'MAP',
+      icon: History,
+      caption: 'Lagrangian Hindcast T₀'
+    },
+    {
+      id: 'step-ais',
+      label: '3. AIS CORRELATION',
+      stage: 'ATTRIBUTION',
+      viewTarget: 'SUSPECTS',
+      icon: Radio,
+      caption: 'Traffic & Suspect Ranking'
+    },
+    {
+      id: 'step-dossier',
+      label: '4. LEGAL DOSSIER',
+      stage: 'ALERTS',
+      viewTarget: 'DOSSIER',
+      icon: FileCheck,
+      caption: 'Court-Admissible Evidence'
+    }
   ]
+
+  const handleStepClick = (step: WorkflowStep) => {
+    setActiveStage(step.stage)
+    if (step.viewTarget) {
+      setActiveConsoleView(step.viewTarget)
+    }
+  }
+
+  // Determine which workflow step is currently active
+  const isStepActive = (step: WorkflowStep) => {
+    if (step.id === 'step-detect') {
+      return activeStage === 'INGESTION' || activeStage === 'DETECTION' || activeStage === 'CHARACTERISATION'
+    }
+    if (step.id === 'step-drift') {
+      return activeStage === 'HINDCAST' || activeStage === 'FORECAST'
+    }
+    if (step.id === 'step-ais') {
+      return activeStage === 'CORRELATION' || activeStage === 'ATTRIBUTION' || activeConsoleView === 'SUSPECTS' || activeConsoleView === 'WHAT_IF'
+    }
+    if (step.id === 'step-dossier') {
+      return activeStage === 'ALERTS' || activeConsoleView === 'DOSSIER'
+    }
+    return false
+  }
 
   return (
     <div
+      className="pipeline-stepper"
       style={{
-        background: 'var(--bg-secondary)',
+        background: 'rgba(9, 17, 30, 0.98)',
         borderBottom: '1px solid var(--border-medium)',
         display: 'flex',
         flexDirection: 'column',
-        flexShrink: 0
+        flexShrink: 0,
+        zIndex: 1000
       }}
     >
-      {/* Step Tabs */}
+      {/* 4-Step Master Stepper Bar */}
       <div
         style={{
           display: 'flex',
           alignItems: 'stretch',
+          width: '100%',
           overflowX: 'auto',
           scrollbarWidth: 'none'
         }}
       >
-        {stages.map((stage) => {
-          const IconComp = stage.icon
-          const isActive = activeStage === stage.id
+        {workflowSteps.map((step, idx) => {
+          const IconComp = step.icon
+          const active = isStepActive(step)
 
           return (
             <button
-              key={stage.id}
-              onClick={() => setActiveStage(stage.id)}
+              key={step.id}
+              onClick={() => handleStepClick(step)}
               style={{
                 flex: 1,
-                minWidth: '130px',
+                minWidth: '220px',
                 height: '46px',
-                background: isActive ? 'var(--bg-surface)' : 'transparent',
+                background: active ? 'rgba(15, 28, 48, 0.95)' : 'transparent',
                 border: 'none',
-                borderBottom: isActive ? '2px solid var(--accent-cyan)' : '2px solid transparent',
+                borderBottom: active ? '2.5px solid var(--accent-teal)' : '2.5px solid transparent',
                 borderRight: '1px solid var(--border-subtle)',
-                color: isActive ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-                padding: '0 8px',
+                color: active ? '#ffffff' : 'var(--text-secondary)',
+                padding: '0 16px',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
+                justifyContent: 'space-between',
                 cursor: 'pointer',
                 fontFamily: 'var(--font-mono)',
-                fontSize: '0.72rem',
-                fontWeight: isActive ? 700 : 500,
                 transition: 'all 0.15s ease'
               }}
             >
-              <IconComp size={15} style={{ color: isActive ? 'var(--accent-cyan)' : 'var(--text-muted)' }} />
-              <span style={{ whiteSpace: 'nowrap' }}>{stage.label}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{
+                    width: '26px',
+                    height: '26px',
+                    borderRadius: '50%',
+                    background: active ? 'rgba(0, 210, 180, 0.2)' : 'rgba(255, 255, 255, 0.04)',
+                    border: `1.5px solid ${active ? 'var(--accent-teal)' : 'var(--border-subtle)'}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}
+                >
+                  <IconComp size={13} style={{ color: active ? 'var(--accent-teal)' : 'var(--text-muted)' }} />
+                </div>
+
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontSize: '0.74rem', fontWeight: active ? 800 : 600, letterSpacing: '0.04em' }}>
+                    {step.label}
+                  </div>
+                  <div style={{ fontSize: '0.62rem', color: active ? 'var(--accent-teal)' : 'var(--text-muted)' }}>
+                    {step.caption}
+                  </div>
+                </div>
+              </div>
+
+              {idx < workflowSteps.length - 1 && (
+                <ChevronRight size={14} style={{ color: 'var(--text-muted)', opacity: 0.5 }} />
+              )}
             </button>
           )
         })}
@@ -92,21 +176,22 @@ export const PipelineStepper: React.FC = () => {
         <div
           style={{
             height: '24px',
-            background: 'rgba(0, 242, 255, 0.1)',
+            background: 'rgba(0, 210, 180, 0.12)',
             borderTop: '1px solid var(--border-subtle)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '0 16px',
             fontFamily: 'var(--font-mono)',
-            fontSize: '0.68rem',
-            color: 'var(--accent-cyan)'
+            fontSize: '0.66rem',
+            color: 'var(--accent-teal)'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Loader2 size={12} className="spin" style={{ animation: 'spin 1s linear infinite' }} />
-            <span>{processingStatusText || 'Executing pipeline task...'}</span>
+            <Loader2 size={12} className="animate-spin" />
+            <span style={{ fontWeight: 700 }}>{processingStatusText}</span>
           </div>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div
               style={{
@@ -121,7 +206,7 @@ export const PipelineStepper: React.FC = () => {
                 style={{
                   width: `${processingProgress}%`,
                   height: '100%',
-                  background: 'var(--accent-cyan)',
+                  background: 'var(--accent-teal)',
                   transition: 'width 0.2s ease'
                 }}
               />

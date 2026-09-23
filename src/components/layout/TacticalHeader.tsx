@@ -1,119 +1,135 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import {
   Shield,
   Play,
   FileText,
-  Cpu
+  Cpu,
+  Map,
+  Network,
+  UserCheck,
+  Sliders,
+  Bot,
+  ArrowLeft,
+  LogOut
 } from 'lucide-react'
-import { useIncident } from '../../state/IncidentContext'
+import { useIncident, ConsoleView } from '../../state/IncidentContext'
 import { DEMO_SCENARIOS } from '../../data/scenarios'
 import { PILOT_REGIONS } from '../../data/regions'
-import { AgencyRole } from '../../types'
 
 export const TacticalHeader: React.FC = () => {
   const {
     currentScenario,
     selectScenario,
-    activeRole,
-    setActiveRole,
     startJudgeDemo,
     isJudgeDemoRunning,
     stopJudgeDemo,
-    setIsReportModalOpen,
-    openExplainAI
+    openExplainAI,
+    activeConsoleView,
+    setActiveConsoleView,
+    isCopilotOpen,
+    setIsCopilotOpen,
+    setAppPage,
+    currentUser,
+    logout
   } = useIncident()
 
-  // Real-time UTC & IST clock
-  const [currentTime, setCurrentTime] = useState({
-    utc: new Date().toUTCString().slice(17, 25) + ' UTC',
-    ist: new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: false }) + ' IST'
-  })
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const now = new Date()
-      setCurrentTime({
-        utc: now.toUTCString().slice(17, 25) + ' UTC',
-        ist: now.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: false }) + ' IST'
-      })
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [])
-
-  const agencyRoles: { id: AgencyRole; label: string; short: string }[] = [
-    { id: 'COAST_GUARD', label: 'Indian Coast Guard', short: 'ICG' },
-    { id: 'NAVY', label: 'Indian Navy', short: 'NAVY' },
-    { id: 'MOEFCC', label: 'MoEFCC Ecology', short: 'MoEFCC' },
-    { id: 'DG_SHIPPING', label: 'DG Shipping Compliance', short: 'DGS' },
-    { id: 'PORT_AUTHORITY', label: 'Port Authority', short: 'PORT' },
-    { id: 'INSURER', label: 'Marine Insurer', short: 'INSURER' }
+  const consoleViews: { id: ConsoleView; label: string; icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }> }[] = [
+    { id: 'MAP', label: 'MAP', icon: Map },
+    { id: 'EVIDENCE_GRAPH', label: 'EVIDENCE GRAPH', icon: Network },
+    { id: 'SUSPECTS', label: 'SUSPECTS', icon: UserCheck },
+    { id: 'WHAT_IF', label: 'WHAT-IF', icon: Sliders },
+    { id: 'DOSSIER', label: 'DOSSIER', icon: FileText }
   ]
 
   return (
     <header
+      className="tactical-header"
       style={{
-        height: '58px',
-        background: 'var(--bg-secondary)',
+        height: '56px',
+        background: 'rgba(9, 17, 30, 0.96)',
+        backdropFilter: 'blur(16px)',
         borderBottom: '1px solid var(--border-medium)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 16px',
+        padding: '0 14px',
         zIndex: 1100,
         boxShadow: 'var(--shadow-tactical)',
-        gap: '12px',
+        gap: '10px',
         flexShrink: 0
       }}
     >
-      {/* 1. Left: Branding & Tagline */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '240px', flexShrink: 0 }}>
-        <div
+      {/* 1. Left: Back to Command Room, Branding & Pilot Badge */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+        <button
+          onClick={() => setAppPage('LANDING')}
+          title="Return to Command Room & Pilot Zone Selection"
           style={{
-            width: '34px',
-            height: '34px',
-            borderRadius: 'var(--radius-sm)',
-            background: 'rgba(0, 242, 255, 0.12)',
-            border: '1px solid var(--accent-cyan)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
+            gap: '4px',
+            padding: '5px 8px',
+            background: 'rgba(255, 255, 255, 0.04)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-sm)',
+            color: 'var(--text-secondary)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.68rem',
+            cursor: 'pointer'
           }}
         >
-          <Shield style={{ color: 'var(--accent-cyan)' }} size={20} />
-        </div>
-        <div style={{ overflow: 'hidden' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontWeight: 900, letterSpacing: '0.08em', color: 'var(--text-primary)', fontSize: '1.02rem', fontFamily: 'var(--font-sans)' }}>
-              SAGAR RAKSHAK
-            </span>
-            <span className="badge badge-cyan" style={{ fontSize: '0.62rem', padding: '2px 6px' }}>
-              SIH26143
-            </span>
+          <ArrowLeft size={13} />
+          <span>PORTAL</span>
+        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div
+            style={{
+              width: '30px',
+              height: '30px',
+              borderRadius: 'var(--radius-sm)',
+              background: 'rgba(0, 210, 180, 0.15)',
+              border: '1px solid var(--accent-teal)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}
+          >
+            <Shield style={{ color: 'var(--accent-teal)' }} size={16} />
           </div>
-          <div style={{ fontSize: '0.66rem', color: 'var(--text-secondary)', letterSpacing: '0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px' }}>
-            AI-Powered Satellite Oil-Spill Detection & Vessel Attribution
+
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontWeight: 900, letterSpacing: '0.06em', color: '#ffffff', fontSize: '0.96rem', fontFamily: 'var(--font-sans)' }}>
+                SAGAR RAKSHAK
+              </span>
+              <span className="badge badge-teal" style={{ fontSize: '0.6rem', padding: '1px 5px' }}>
+                PS 26143
+              </span>
+              <span className="badge badge-simulated" style={{ fontSize: '0.6rem', padding: '1px 5px' }}>
+                [● SIMULATED DATA]
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 2. Center: Current Incident / Scenario Switcher */}
+      {/* 2. Center-Left: Incident / Scenario Selector */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
-          background: 'var(--bg-surface)',
-          padding: '4px 12px',
-          borderRadius: 'var(--radius-md)',
+          gap: '6px',
+          background: 'rgba(5, 10, 18, 0.85)',
+          padding: '3px 10px',
+          borderRadius: 'var(--radius-sm)',
           border: '1px solid var(--border-medium)',
-          boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.4)',
-          maxWidth: '420px',
-          flex: '0 1 auto'
+          flexShrink: 0
         }}
       >
-        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
-          SCENARIO:
+        <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+          INCIDENT:
         </span>
         <select
           value={currentScenario.id}
@@ -122,117 +138,98 @@ export const TacticalHeader: React.FC = () => {
           style={{
             background: 'transparent',
             border: 'none',
-            color: 'var(--accent-cyan)',
+            color: 'var(--accent-teal)',
             fontFamily: 'var(--font-mono)',
-            fontSize: '0.76rem',
-            fontWeight: 700,
+            fontSize: '0.74rem',
+            fontWeight: 800,
             cursor: 'pointer',
             outline: 'none',
-            maxWidth: '280px',
+            maxWidth: '180px',
             textOverflow: 'ellipsis'
           }}
         >
           {DEMO_SCENARIOS.map((sc) => (
-            <option key={sc.id} value={sc.id} style={{ background: '#0d1322', color: '#f8fafc' }}>
-              {sc.title} [{sc.badge}]
+            <option key={sc.id} value={sc.id} style={{ background: '#09111e', color: '#f8fafc' }}>
+              {sc.title}
             </option>
           ))}
         </select>
-        <span className="badge badge-emerald" style={{ fontSize: '0.6rem', padding: '2px 5px' }}>
+        <span className="badge badge-amber" style={{ fontSize: '0.58rem', padding: '1px 4px' }}>
           {(PILOT_REGIONS[currentScenario.regionId]?.name || currentScenario.regionId).split(' ')[0]}
         </span>
       </div>
 
-      {/* 3. Right: Live Clocks, Active Role, Demo Mode Badge & Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-        {/* UTC & IST Clocks */}
-        <div style={{ display: 'flex', gap: '6px', fontFamily: 'var(--font-mono)', fontSize: '0.68rem' }}>
-          <div
-            title="Coordinated Universal Time"
-            style={{
-              background: 'var(--bg-surface)',
-              padding: '3px 7px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border-subtle)',
-              color: 'var(--accent-cyan)'
-            }}
-          >
-            {currentTime.utc}
-          </div>
-          <div
-            title="Indian Standard Time"
-            style={{
-              background: 'var(--bg-surface)',
-              padding: '3px 7px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border-subtle)',
-              color: 'var(--text-secondary)'
-            }}
-          >
-            {currentTime.ist}
-          </div>
-        </div>
+      {/* 3. Center: Core Console View Tabs (MAP / EVIDENCE GRAPH / SUSPECTS / WHAT-IF / DOSSIER) */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '3px',
+          background: 'rgba(5, 10, 18, 0.9)',
+          padding: '3px',
+          borderRadius: 'var(--radius-sm)',
+          border: '1px solid var(--border-medium)'
+        }}
+      >
+        {consoleViews.map((tab) => {
+          const isActive = activeConsoleView === tab.id
+          const IconComp = tab.icon
 
-        {/* Active Role Selector */}
-        <div
-          title={agencyRoles.find(r => r.id === activeRole)?.label}
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveConsoleView(tab.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '5px 10px',
+                background: isActive ? 'rgba(0, 210, 180, 0.22)' : 'transparent',
+                border: 'none',
+                borderRadius: 'var(--radius-xs)',
+                color: isActive ? 'var(--accent-teal)' : 'var(--text-secondary)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.7rem',
+                fontWeight: isActive ? 800 : 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <IconComp size={13} style={{ color: isActive ? 'var(--accent-teal)' : 'var(--text-muted)' }} />
+              <span>{tab.label}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* 4. Right: Actions, AI Copilot, Judge Demo, Role & User */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+        {/* AI Forensics Copilot Drawer Trigger */}
+        <button
+          onClick={() => setIsCopilotOpen(!isCopilotOpen)}
+          title="Open AI Forensics Copilot"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '4px',
-            background: 'var(--bg-surface)',
+            gap: '6px',
+            padding: '5px 10px',
+            background: isCopilotOpen ? 'var(--accent-teal)' : 'rgba(0, 210, 180, 0.14)',
+            border: '1px solid var(--accent-teal)',
             borderRadius: 'var(--radius-sm)',
-            padding: '2px 6px',
-            border: '1px solid var(--border-subtle)'
+            color: isCopilotOpen ? '#030712' : 'var(--accent-teal)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.7rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            boxShadow: 'var(--shadow-teal-glow)'
           }}
         >
-          <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>ROLE:</span>
-          <select
-            value={activeRole}
-            onChange={(e) => setActiveRole(e.target.value as AgencyRole)}
-            aria-label="Active Agency Role"
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--accent-amber)',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.7rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              outline: 'none',
-              maxWidth: '90px'
-            }}
-          >
-            {agencyRoles.map((role) => (
-              <option key={role.id} value={role.id} style={{ background: '#0d1322', color: '#f8fafc' }}>
-                {role.short} — {role.label}
-              </option>
-            ))}
-          </select>
-        </div>
+          <Bot size={14} />
+          <span>AI COPILOT</span>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isCopilotOpen ? '#030712' : 'var(--accent-amber)' }} />
+        </button>
 
-        {/* Transparent Simulation Badge */}
-        <span
-          className="badge"
-          style={{
-            fontSize: '0.66rem',
-            letterSpacing: '0.05em',
-            padding: '3px 8px',
-            background: 'rgba(245, 158, 11, 0.15)',
-            color: 'var(--accent-amber)',
-            border: '1px solid rgba(245, 158, 11, 0.4)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px',
-            boxShadow: '0 0 8px rgba(245, 158, 11, 0.2)'
-          }}
-          title="SIMULATED DATASET // Synthetic SAR & AIS Stream calibrated for SIH 2026 demonstration."
-        >
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-amber)', display: 'inline-block' }} />
-          SIMULATED DATA
-        </span>
-
-        {/* Action: Run Judge Demo */}
+        {/* Judge Demo Quick-Tour Button */}
         <button
           onClick={isJudgeDemoRunning ? stopJudgeDemo : startJudgeDemo}
           title={isJudgeDemoRunning ? 'Stop automated tour' : 'Start 2-minute judge demo tour'}
@@ -240,67 +237,79 @@ export const TacticalHeader: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '5px',
-            padding: '5px 10px',
-            background: isJudgeDemoRunning ? 'rgba(239, 68, 68, 0.2)' : 'rgba(0, 242, 255, 0.15)',
-            border: `1px solid ${isJudgeDemoRunning ? 'var(--accent-crimson)' : 'var(--accent-cyan)'}`,
+            padding: '5px 9px',
+            background: isJudgeDemoRunning ? 'rgba(244, 63, 94, 0.2)' : 'rgba(245, 158, 11, 0.12)',
+            border: `1px solid ${isJudgeDemoRunning ? 'var(--accent-coral)' : 'var(--accent-amber)'}`,
             borderRadius: 'var(--radius-sm)',
-            color: isJudgeDemoRunning ? 'var(--accent-crimson)' : 'var(--accent-cyan)',
+            color: isJudgeDemoRunning ? 'var(--accent-coral)' : 'var(--accent-amber-bright)',
             fontFamily: 'var(--font-mono)',
-            fontSize: '0.7rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-            boxShadow: isJudgeDemoRunning ? 'var(--shadow-crimson-glow)' : 'var(--shadow-cyan-glow)'
+            fontSize: '0.68rem',
+            fontWeight: 800,
+            cursor: 'pointer'
           }}
         >
-          <Play size={11} fill={isJudgeDemoRunning ? 'var(--accent-crimson)' : 'var(--accent-cyan)'} />
-          <span>{isJudgeDemoRunning ? 'STOP' : 'DEMO'}</span>
+          <Play size={10} fill={isJudgeDemoRunning ? 'var(--accent-coral)' : 'var(--accent-amber-bright)'} />
+          <span>{isJudgeDemoRunning ? 'STOP' : 'TOUR'}</span>
         </button>
 
-        {/* Action: Explain AI */}
+        {/* Explain AI Science Button */}
         <button
           onClick={() => openExplainAI('UNET_SEGMENTATION')}
           title="Inspect Deep Learning & Physics Methodology"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '5px',
-            padding: '5px 10px',
-            background: 'rgba(0, 242, 255, 0.08)',
-            border: '1px solid rgba(0, 242, 255, 0.4)',
+            gap: '4px',
+            padding: '5px 8px',
+            background: 'rgba(255, 255, 255, 0.04)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-sm)',
-            color: 'var(--accent-cyan)',
+            color: 'var(--text-secondary)',
             fontFamily: 'var(--font-mono)',
-            fontSize: '0.7rem',
-            fontWeight: 700,
+            fontSize: '0.68rem',
             cursor: 'pointer'
           }}
         >
-          <Cpu size={12} style={{ color: 'var(--accent-cyan)' }} />
-          <span>EXPLAIN AI</span>
+          <Cpu size={12} />
+          <span>AI TECH</span>
         </button>
 
-        {/* Action: Evidence Report Dossier */}
-        <button
-          onClick={() => setIsReportModalOpen(true)}
-          title="Open MARPOL Article 4/6 Evidence Dossier"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px',
-            padding: '5px 10px',
-            background: 'var(--bg-surface-elevated)',
-            border: '1px solid var(--border-medium)',
-            borderRadius: 'var(--radius-sm)',
-            color: 'var(--text-primary)',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.7rem',
-            fontWeight: 600,
-            cursor: 'pointer'
-          }}
-        >
-          <FileText size={12} style={{ color: 'var(--accent-emerald)' }} />
-          <span>DOSSIER</span>
-        </button>
+        {/* Operator Profile & Logout */}
+        {currentUser && (
+          <div
+            title={`${currentUser.name} (${currentUser.roleTitle})`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '3px 8px',
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-sm)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.68rem'
+            }}
+          >
+            <span style={{ color: 'var(--text-primary)', fontWeight: 700 }}>
+              {currentUser.name.split(',')[0]}
+            </span>
+            <button
+              onClick={logout}
+              title="Sign Out"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-muted)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '2px'
+              }}
+            >
+              <LogOut size={12} />
+            </button>
+          </div>
+        )}
       </div>
     </header>
   )

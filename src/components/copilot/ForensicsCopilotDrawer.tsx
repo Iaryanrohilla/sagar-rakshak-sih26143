@@ -5,11 +5,7 @@ import {
   Bot,
   Send,
   X,
-  Sparkles,
-  Shield,
-  HelpCircle,
-  CornerDownLeft,
-  ChevronRight
+  Sparkles
 } from 'lucide-react'
 
 export const ForensicsCopilotDrawer: React.FC = () => {

@@ -9,13 +9,8 @@ import {
   ChevronRight,
   Shield,
   Activity,
-  Layers,
-  Radio,
-  FileCheck,
   LogOut,
-  MapPin,
-  AlertTriangle,
-  Waves
+  MapPin
 } from 'lucide-react'
 
 export const LandingPage: React.FC = () => {

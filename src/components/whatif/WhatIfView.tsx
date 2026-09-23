@@ -4,15 +4,7 @@ import {
   Sliders,
   RotateCcw,
   ShieldCheck,
-  Compass,
-  Wind,
-  Clock,
-  Layers,
-  Activity,
-  FileText,
-  AlertCircle,
-  ExternalLink,
-  ChevronRight
+  Compass
 } from 'lucide-react'
 
 export const WhatIfView: React.FC = () => {
@@ -21,9 +13,7 @@ export const WhatIfView: React.FC = () => {
     whatIfPerturbation,
     whatIfResult,
     setWhatIfPerturbation,
-    resetWhatIfPerturbation,
-    setActiveConsoleView,
-    triggerFocusPreset
+    resetWhatIfPerturbation
   } = useIncident()
 
   const {

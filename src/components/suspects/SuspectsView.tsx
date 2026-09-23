@@ -2,14 +2,12 @@ import React, { useState } from 'react'
 import { useIncident } from '../../state/IncidentContext'
 import {
   UserCheck,
-  ShieldAlert,
   ChevronDown,
   ChevronUp,
   Sliders,
   ExternalLink,
   Ban,
   RotateCcw,
-  CheckCircle2,
   AlertTriangle,
   Radio,
   Clock,
@@ -20,7 +18,6 @@ import {
 export const SuspectsView: React.FC = () => {
   const {
     incident,
-    selectedSuspect,
     setSelectedSuspect,
     excludedSuspectIds,
     excludeSuspect,
