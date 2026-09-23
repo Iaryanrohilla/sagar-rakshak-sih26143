@@ -218,6 +218,7 @@ export interface SuspectRanking {
   rank: number;
   vessel: AISVessel;
   overallScore: number; // 0-100
+  compositeScore?: number; // 0-100 alias
   confidenceLevel: 'HIGH' | 'MEDIUM' | 'LOW';
   evidenceFactors: EvidenceFactor[];
   legalAdmissibilityCaveat: string;

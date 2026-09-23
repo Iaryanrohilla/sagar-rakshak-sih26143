@@ -1,0 +1,7 @@
+# Use this workspace to collaborate
+workspace:
+  id: 466df90c-6d6a-44ca-8c4e-b23d8f1c59a9
+
+localResources:
+  collections:
+    - ../docs/api/sagar_rakshak_postman_collection.json
