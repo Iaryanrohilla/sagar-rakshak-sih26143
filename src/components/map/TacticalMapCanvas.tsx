@@ -22,6 +22,15 @@ import {
 } from 'lucide-react'
 import { AISVessel } from '../../types'
 
+// Explicitly register self-contained Web Worker script for zero-glitch production deployment
+if (typeof window !== 'undefined') {
+  try {
+    mapboxgl.setWorkerUrl('/maplibre-gl-worker.mjs')
+  } catch (err) {
+    // Graceful fallback
+  }
+}
+
 // Safely normalize coordinate pair into GeoJSON [lon, lat]
 // In Indian maritime EEZ waters, Latitude is ~8-25°N, Longitude is ~68-88°E
 const toSafeLngLat = (coords: [number, number]): [number, number] => {
