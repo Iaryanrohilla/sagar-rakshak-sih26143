@@ -1436,3 +1436,17 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     }
   }
 ]
+
+// Canonical normalization: Ensure all suspects in all demo scenarios link to their full AIS trajectories
+for (const scenario of DEMO_SCENARIOS) {
+  for (const suspect of scenario.incident.suspects) {
+    if (!suspect.vessel.trajectory || suspect.vessel.trajectory.length === 0) {
+      const match = scenario.incident.aisVessels?.find(
+        (v) => v.id === suspect.vessel.id || v.mmsi === suspect.vessel.mmsi
+      )
+      if (match && match.trajectory && match.trajectory.length > 0) {
+        suspect.vessel.trajectory = match.trajectory
+      }
+    }
+  }
+}

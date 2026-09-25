@@ -69,10 +69,14 @@ interface IncidentContextType {
   // Map Layer Toggles
   showSlickPolygon: boolean
   showDriftCone: boolean
+  showForecast: boolean
   showAisTracks: boolean
+  showCandidateVessels: boolean
+  showCpaIntercept: boolean
+  showSensitiveAreas: boolean
   showDarkSegments: boolean
   showCurrentVectors: boolean
-  toggleMapLayer: (layer: 'slick' | 'drift' | 'ais' | 'dark' | 'current') => void
+  toggleMapLayer: (layer: 'slick' | 'drift' | 'hindcast' | 'forecast' | 'ais' | 'candidate' | 'cpa' | 'sensitive' | 'dark' | 'current') => void
 
   // Map Focus Presets
   activeFocusPreset: FocusPreset | null
@@ -180,7 +184,11 @@ export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Map Layer Toggles
   const [showSlickPolygon, setShowSlickPolygon] = useState<boolean>(true)
   const [showDriftCone, setShowDriftCone] = useState<boolean>(true)
+  const [showForecast, setShowForecast] = useState<boolean>(true)
   const [showAisTracks, setShowAisTracks] = useState<boolean>(true)
+  const [showCandidateVessels, setShowCandidateVessels] = useState<boolean>(true)
+  const [showCpaIntercept, setShowCpaIntercept] = useState<boolean>(true)
+  const [showSensitiveAreas, setShowSensitiveAreas] = useState<boolean>(true)
   const [showDarkSegments, setShowDarkSegments] = useState<boolean>(true)
   const [showCurrentVectors, setShowCurrentVectors] = useState<boolean>(true)
 
@@ -262,8 +270,11 @@ export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (found) {
       setCurrentScenario(found)
       setIncident(found.incident)
-      setSelectedSuspect(found.incident.suspects[0] || null)
-      setMapFocusTarget(found.incident.detection.centroid)
+      const sortedSuspects = found.incident.suspects.length > 0
+        ? [...found.incident.suspects].sort((a, b) => b.overallScore - a.overallScore)
+        : []
+      setSelectedSuspect(sortedSuspects[0] || null)
+      setMapFocusTarget(null) // Resets to trigger full incident bounds fit
       setHindcastPlaybackStep(-1)
       setIsHindcastPlaying(false)
       setForecastSliderHour(48)
@@ -275,11 +286,16 @@ export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [])
 
   // Layer Toggles
-  const toggleMapLayer = useCallback((layer: 'slick' | 'drift' | 'ais' | 'dark' | 'current') => {
+  const toggleMapLayer = useCallback((layer: 'slick' | 'drift' | 'hindcast' | 'forecast' | 'ais' | 'candidate' | 'cpa' | 'sensitive' | 'dark' | 'current') => {
     switch (layer) {
       case 'slick': setShowSlickPolygon(prev => !prev); break
-      case 'drift': setShowDriftCone(prev => !prev); break
+      case 'drift':
+      case 'hindcast': setShowDriftCone(prev => !prev); break
+      case 'forecast': setShowForecast(prev => !prev); break
       case 'ais': setShowAisTracks(prev => !prev); break
+      case 'candidate': setShowCandidateVessels(prev => !prev); break
+      case 'cpa': setShowCpaIntercept(prev => !prev); break
+      case 'sensitive': setShowSensitiveAreas(prev => !prev); break
       case 'dark': setShowDarkSegments(prev => !prev); break
       case 'current': setShowCurrentVectors(prev => !prev); break
     }
@@ -364,15 +380,23 @@ export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }, 350)
   }, [incident])
 
-  // Map Highlighting
+  // Map Highlighting (Requirement 11)
   const showEvidenceOnMap = useCallback((vesselId: string) => {
     setActiveEvidenceHighlight(vesselId)
-    const vesselMatch = incident.aisVessels.find((v) => v.id === vesselId)
-    if (vesselMatch) {
-      setMapFocusTarget(vesselMatch.currentPosition)
-      const suspectMatch = incident.suspects.find((s) => s.vessel.id === vesselId)
-      if (suspectMatch) setSelectedSuspect(suspectMatch)
+    // Guarantee that all primary evidence layers are visible
+    setShowSlickPolygon(true)
+    setShowCandidateVessels(true)
+    setShowCpaIntercept(true)
+    setShowDriftCone(true)
+    setActiveConsoleView('MAP')
+
+    const suspectMatch = incident.suspects.find((s) => s.vessel.id === vesselId || s.vessel.mmsi === vesselId)
+    if (suspectMatch) {
+      setSelectedSuspect(suspectMatch)
     }
+
+    setActiveFocusPreset('CORRIDOR')
+    setMapFocusTarget(null) // Triggers full forensic bounds fit
   }, [incident])
 
   const clearEvidenceHighlight = useCallback(() => {
@@ -580,7 +604,11 @@ export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setImageryMode,
         showSlickPolygon,
         showDriftCone,
+        showForecast,
         showAisTracks,
+        showCandidateVessels,
+        showCpaIntercept,
+        showSensitiveAreas,
         showDarkSegments,
         showCurrentVectors,
         toggleMapLayer,

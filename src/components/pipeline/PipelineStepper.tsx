@@ -36,7 +36,7 @@ export const PipelineStepper: React.FC = () => {
       stage: 'DETECTION',
       viewTarget: 'MAP',
       icon: Target,
-      caption: 'SAR + Optical Slick Ingest'
+      caption: 'Satellite Ingest & Slick Detect'
     },
     {
       id: 'step-drift',
@@ -44,7 +44,7 @@ export const PipelineStepper: React.FC = () => {
       stage: 'HINDCAST',
       viewTarget: 'MAP',
       icon: History,
-      caption: 'Lagrangian Hindcast T₀'
+      caption: 'Drift Hindcast & Forecast'
     },
     {
       id: 'step-ais',
@@ -52,7 +52,7 @@ export const PipelineStepper: React.FC = () => {
       stage: 'ATTRIBUTION',
       viewTarget: 'SUSPECTS',
       icon: Radio,
-      caption: 'Traffic & Suspect Ranking'
+      caption: 'AIS Correlate & Vessel Attribution'
     },
     {
       id: 'step-dossier',
@@ -60,7 +60,7 @@ export const PipelineStepper: React.FC = () => {
       stage: 'ALERTS',
       viewTarget: 'DOSSIER',
       icon: FileCheck,
-      caption: 'Court-Admissible Evidence'
+      caption: 'Agency Alerts & Evidence Dossier'
     }
   ]
 
@@ -120,7 +120,7 @@ export const PipelineStepper: React.FC = () => {
               onClick={() => handleStepClick(step)}
               style={{
                 flex: 1,
-                minWidth: '220px',
+                minWidth: '180px',
                 height: '46px',
                 background: active ? 'rgba(15, 28, 48, 0.95)' : 'transparent',
                 border: 'none',
